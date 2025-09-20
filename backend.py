@@ -48,7 +48,7 @@ prompt_bases = [
 def get_full_prompt(prompt_base, topic, language, world, current_content):
     return prompt_base + f"Topic: {topic}\nLanguage: {language}\nWorld: {world}\nCurrent Content:\n" + current_content
 
-def get_content(prompt):
+def get_response(prompt):
     response = client.chat.completions.create(
         messages=[
             {
@@ -58,7 +58,7 @@ def get_content(prompt):
         ],
         model="qwen-3-235b-a22b-instruct-2507",
     )
-    return response.choices[0].message.content
+    return response
 
 def get_text(content):
     lines = content.split("\n")
@@ -75,14 +75,32 @@ def get_text(content):
             filtered_lines.append(line)
     return "\n".join(filtered_lines).strip()
 
-completion = ""
-with open("data/world0.json", "r") as f:
-    world = json.load(f)
-while completion.endswith("<end>") == False:
-  completion += "\n" + get_content(get_full_prompt(prompt_bases[1], "Your Choice - ", "English", json.dumps(world), completion))
-  with open("output.md", "w") as f:
-      f.write(get_text(completion))
-  world["backstory"].append(completion)
-  input("Press Enter to continue...")  # Pause between iterations for user to review
-with open("data/world0.json", "w") as f:
-    json.dump(world, f)
+def generate_content(prompt_base, topic, language, world_file, current_content_idx="new"):
+    with open(world_file, "r") as f:
+        world = json.load(f)
+    if current_content_idx == "new":
+        world["backstory"].append("")
+        current_content_idx = len(world["backstory"]) - 1
+    completion = "\n" + get_response(get_full_prompt(prompt_base, topic, language, json.dumps(world), world["backstory"][current_content_idx])).choices[0].message.content
+    world["backstory"][current_content_idx] += completion
+    with open(world_file, "w") as f:
+        json.dump(world, f)
+    return get_text(completion), completion.endswith("<end>")
+
+def create_new_world(name, description):
+    world = {
+        "description": description,
+        "backstory": [""]
+    }
+    with open(f"data/{name}.json", "w") as f:
+        json.dump(world, f)
+    return
+
+if __name__ == "__main__":
+  completion = ""
+  ended = False
+  while not ended:
+    completion, ended = generate_content(prompt_bases[0], "discovering mars", "English", "data/world0.json", "new" if completion == "" else -1)
+    with open("output.md", "w") as f:
+        f.write(get_text(completion))
+    input("Press Enter to continue...")  # Pause between iterations for user to review

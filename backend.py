@@ -1,0 +1,80 @@
+import os
+import dotenv
+dotenv.load_dotenv()
+from cerebras.cloud.sdk import Cerebras
+
+client = Cerebras(
+    api_key=os.environ.get("CEREBRAS_API_KEY"),  # This is the default and can be omitted
+)
+
+prompt_bases = [
+    """
+    You will generate a script for a scene of a play about the given topic in the given language in markdown.\n
+    Use ### Heading 3 for the names of scenes\n
+    Use **bolding** for the names of characters the FIRST (and only the first) time they appear\n
+    Use ALL CAPS for character names EVERY time they appear\n
+    Use ALL CAPS for a character name followed by a colon and then their dialogue for character dialogue\n
+    Use _italics_ for stage directions.\n
+    Each line of dialogue and each stage direction should be on its own line\n
+    Example Snippet of a play (you will generate a full play in the given language, which may not be english, and on a different topic, this is just an example of formatting):\n
+    ### Scene 1: The Call to Adventure\n
+    _(A small village. **ALICE** is sitting by a fire.)_\n
+    ALICE: I wish something exciting would happen.\n
+    _(Suddenly, a mysterious figure, **THE STRANGER**, enters.)_\n
+    THE STRANGER: Greetings, Alice. Your adventure awaits!\n
+    ALICE: Who are you? What adventure?\n
+    ...(scene continues, this is just a snippet)\n
+    Respond with ONLY the scene in the format described above, do not include any other text. Include AT LEAST 20 lines of dialogue and stage directions.\n
+    Please continue the play below by first adding a summary of the play, focusing on what you plan to write about in the current scene (including characterization and plot) and potential directions for the story after this scene, enclosed in <info></info> tags, and then add ONE scene.\n
+    If there are currently no scenes, please begin the play with the title of the play (in # heading 1), then ONE introductory scene.\n
+    If you reach a conclusion to the ENTIRE play after this scene, end it with a line saying ### THE END. (in the language of the play). Then, in a new line, write <end>\n
+    Otherwise, end the scene with a NEWLINE after the last line of dialogue or stage directions of the CURRENT scene.\n
+    Do not include the name of the next scene. Note that a good play should have AT LEAST 5 scenes.\n
+    """,
+    """
+    You will generate a short story about the given topic in the given language in markdown.\n
+    Use # Heading 1 for the name of the story\n
+    Respond with ONLY the story, do not include any other text. An example of a story in terms of length, plot complexity, and characterization is The Gift of the Magi.\n
+    (Note: Do NOT use this as a style or plot reference unless it would fit the topic; use this example as a reference for how complex your plot and characters should be).\n
+    Please begin by first adding a summary of the story, focusing on what you plan to write about (separate into Exposition, Inciting Incident, Rising Action, Climax, Falling Action, Resolution) (including characterization and plot) and potential directions for the story, enclosed in <info></info> tags, and then write the story.\n
+    End the story with a line saying ### THE END. (in the language of the story). Then, in a new line, write <end>\n
+    Note that good stories should have highly descriptive language (including literary and rhetorical devices), and be AT LEAST 1000 words long.\n
+    """
+]
+
+def get_full_prompt(prompt_base, topic, language, current_content):
+    return prompt_base + f"Topic: {topic}\nLanguage: {language}\nCurrent Content:\n" + current_content
+
+def get_content(prompt):
+    response = client.chat.completions.create(
+        messages=[
+            {
+                "role": "user",
+                "content": prompt,
+            }
+        ],
+        model="qwen-3-235b-a22b-instruct-2507",
+    )
+    return response.choices[0].message.content
+
+def get_text(content):
+    lines = content.split("\n")
+    in_info = False
+    filtered_lines = []
+    for line in lines:
+        if line.startswith("<info>"):
+            in_info = True
+        elif line.startswith("</info>"):
+            in_info = False
+        elif line.startswith("<end>"):
+            break
+        elif not in_info:
+            filtered_lines.append(line)
+    return "\n".join(filtered_lines).strip()
+
+completion = ""
+while completion.endswith("<end>") == False:
+  completion += "\n" + get_content(get_full_prompt(prompt_bases[1], "A brave knight and a clever dragon", "English", completion))
+  with open("output.md", "w") as f:
+      f.write(completion)
+  input("Press Enter to continue...")  # Pause between iterations for user to review

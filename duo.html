@@ -563,7 +563,7 @@
                 <button class="start-story-btn" onclick="startNewStory()">Start New Story</button>
                 
                 <div class="text-display" id="textDisplay">
-                    <p>Click "Start New Story" to begin generating your text!</p>
+                    <p> </p>
                 </div>
                 
                 <div class="previous-stories">
@@ -696,14 +696,14 @@
         function startNewStory() {
             const textDisplay = document.getElementById('textDisplay');
             const startBtn = document.querySelector('.start-story-btn');
-            textDisplay.classList.remove('slide-in');
-            textDisplay.classList.add('slide-up');
-            textDisplay.innerHTML = '<p>Generating your story... Please wait!</p>';
-
             // Remove move-in class if present
             if (startBtn) {
                 startBtn.classList.remove('move-in');
             }
+            // Show loading text immediately, but don't animate out yet
+            textDisplay.innerHTML = '<p>Generating your story... Please wait!</p>';
+            textDisplay.classList.remove('slide-in');
+            textDisplay.classList.remove('slide-up');
 
             // Simulate story generation (replace with actual API call)
             setTimeout(() => {
@@ -714,7 +714,7 @@
                 ];
 
                 const randomStory = sampleStories[Math.floor(Math.random() * sampleStories.length)];
-                // Animate text out, then slide in new story
+                // Animate text out only after story is ready
                 textDisplay.classList.add('slide-up');
                 setTimeout(() => {
                     textDisplay.innerHTML = `<p>${randomStory}</p>`;

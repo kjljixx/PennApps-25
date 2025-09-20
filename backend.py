@@ -1,6 +1,7 @@
 import os
 import dotenv
 dotenv.load_dotenv()
+import json
 from cerebras.cloud.sdk import Cerebras
 
 client = Cerebras(
@@ -9,7 +10,8 @@ client = Cerebras(
 
 prompt_bases = [
     """
-    You will generate a script for a scene of a play about the given topic in the given language in markdown.\n
+    You will generate a script for a scene of a play about the given topic in the given language in the given world in markdown.\n
+    Your generated content should be ORIGINAL (DIFFERENT from previous plots), but in the same world
     Use ### Heading 3 for the names of scenes\n
     Use **bolding** for the names of characters the FIRST (and only the first) time they appear\n
     Use ALL CAPS for character names EVERY time they appear\n
@@ -33,6 +35,7 @@ prompt_bases = [
     """,
     """
     You will generate a short story about the given topic in the given language in markdown.\n
+    Your generated content should be ORIGINAL (DIFFERENT from previous plots), but in the same world
     Use # Heading 1 for the name of the story\n
     Respond with ONLY the story, do not include any other text. An example of a story in terms of length, plot complexity, and characterization is The Gift of the Magi.\n
     (Note: Do NOT use this as a style or plot reference unless it would fit the topic; use this example as a reference for how complex your plot and characters should be).\n
@@ -42,8 +45,8 @@ prompt_bases = [
     """
 ]
 
-def get_full_prompt(prompt_base, topic, language, current_content):
-    return prompt_base + f"Topic: {topic}\nLanguage: {language}\nCurrent Content:\n" + current_content
+def get_full_prompt(prompt_base, topic, language, world, current_content):
+    return prompt_base + f"Topic: {topic}\nLanguage: {language}\nWorld: {world}\nCurrent Content:\n" + current_content
 
 def get_content(prompt):
     response = client.chat.completions.create(
@@ -73,8 +76,13 @@ def get_text(content):
     return "\n".join(filtered_lines).strip()
 
 completion = ""
+with open("data/world0.json", "r") as f:
+    world = json.load(f)
 while completion.endswith("<end>") == False:
-  completion += "\n" + get_content(get_full_prompt(prompt_bases[1], "A brave knight and a clever dragon", "English", completion))
+  completion += "\n" + get_content(get_full_prompt(prompt_bases[1], "Your Choice - ", "English", json.dumps(world), completion))
   with open("output.md", "w") as f:
-      f.write(completion)
+      f.write(get_text(completion))
+  world["backstory"].append(completion)
   input("Press Enter to continue...")  # Pause between iterations for user to review
+with open("data/world0.json", "w") as f:
+    json.dump(world, f)

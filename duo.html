@@ -24,9 +24,20 @@
 
         /* Navigation Bar */
         .navbar {
-            background-color: #90EE90; /* Light pastel green for navigation */
+            background-color: rgba(144, 238, 144, 0.95); /* Light pastel green, slightly transparent */
             padding: 1rem 2rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1100;
+            transition: background-color 0.4s, box-shadow 0.4s;
+        }
+
+        .navbar.scrolled {
+            background-color: rgba(144, 238, 144, 0.7);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
         }
 
         .nav-container {
@@ -72,7 +83,7 @@
         /* Main Content */
         .main-content {
             max-width: 1200px;
-            margin: 0 auto;
+            margin: 5rem auto 0 auto;
             padding: 1.6rem;
         }
 
@@ -250,6 +261,19 @@
             transform: translateY(-2px);
         }
 
+        .start-story-btn.move-out {
+            transition: opacity 0.3s, transform 0.3s;
+            opacity: 0;
+            transform: scale(0.7);
+            pointer-events: none;
+        }
+
+        .start-story-btn.move-in {
+            transition: opacity 0.3s, transform 0.3s;
+            opacity: 1;
+            transform: scale(1);
+        }
+
         .text-display {
             background-color: transparent;
             border: none;
@@ -263,6 +287,18 @@
             max-width: 800px;
             margin-left: auto;
             margin-right: auto;
+        }
+
+        .text-display.slide-up {
+            transition: transform 0.4s cubic-bezier(0.4,0,0.2,1), opacity 0.4s;
+            transform: translateY(40px);
+            opacity: 0;
+        }
+
+        .text-display.slide-in {
+            transition: transform 0.4s cubic-bezier(0.4,0,0.2,1), opacity 0.4s;
+            transform: translateY(0);
+            opacity: 1;
         }
 
         .previous-stories {
@@ -401,7 +437,7 @@
             border: 2px solid #F77F00;
             border-radius: 50%;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: left 0.5s cubic-bezier(0.4,0,0.2,1), width 0.5s cubic-bezier(0.4,0,0.2,1), border-radius 0.5s, background-color 0.5s, background-image 0.5s, box-shadow 0.5s;
             z-index: 1000;
             box-shadow: 0 2px 8px rgba(0,0,0,0.2);
         }
@@ -417,7 +453,9 @@
         }
 
         .felix-icon.expanded {
-            width: 32rem;
+            width: 90vw;
+            left: 50%;
+            transform: translateX(-50%);
             height: 4.8rem;
             border-radius: 2.4rem;
             background-color: white;
@@ -429,8 +467,8 @@
         .felix-textbox {
             position: fixed;
             bottom: 1.6rem;
-            left: 1.6rem;
-            width: 32rem;
+            left: 50%;
+            width: 90vw;
             height: 4.8rem;
             background-color: white;
             border: 2px solid #2E8B57;
@@ -443,7 +481,8 @@
             box-shadow: 0 4px 16px rgba(0,0,0,0.2);
             z-index: 1001;
             display: none;
-            transition: all 0.3s ease;
+            transform: translateX(-50%);
+            transition: left 0.5s cubic-bezier(0.4,0,0.2,1), width 0.5s cubic-bezier(0.4,0,0.2,1), border-radius 0.5s, box-shadow 0.5s;
         }
 
         .felix-textbox:focus {
@@ -484,13 +523,17 @@
             }
 
             .felix-icon.expanded {
-                width: 24rem;
+                width: 90vw;
+                left: 50%;
+                transform: translateX(-50%);
                 height: 4rem;
                 border-radius: 2rem;
             }
 
             .felix-textbox {
-                width: 24rem;
+                width: 90vw;
+                left: 50%;
+                transform: translateX(-50%);
                 height: 4rem;
                 border-radius: 2rem;
                 padding: 0 1.6rem;
@@ -516,7 +559,7 @@
         <!-- Chat Page -->
         <div id="chat" class="page active">
             <div class="chat-container">
-                <h1 style="color: #2E8B57; font-family: 'Poppins', sans-serif; font-weight: 700; margin-bottom: 360 px;">Story Generator</h1>
+                <!-- <h1 style="color: #2E8B57; font-family: 'Poppins', sans-serif; font-weight: 700; margin-bottom: 360 px;">Story Generator</h1> -->
                 <button class="start-story-btn" onclick="startNewStory()">Start New Story</button>
                 
                 <div class="text-display" id="textDisplay">
@@ -610,28 +653,58 @@
     <input type="text" class="felix-textbox" id="felixTextbox" placeholder="Ask Felix anything..." onkeypress="handleFelixInput(event)">
 
     <script>
+        // Modern Navbar Scroll Effect
+        window.addEventListener('scroll', function() {
+            const navbar = document.querySelector('.navbar');
+            if (window.scrollY > 40) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+
         // Page Navigation
         function showPage(pageId) {
             // Hide all pages
             const pages = document.querySelectorAll('.page');
             pages.forEach(page => page.classList.remove('active'));
-            
+
             // Remove active class from all nav links
             const navLinks = document.querySelectorAll('.nav-link');
             navLinks.forEach(link => link.classList.remove('active'));
-            
+
             // Show selected page
             document.getElementById(pageId).classList.add('active');
-            
+
             // Add active class to clicked nav link
             event.target.classList.add('active');
+
+            // Felix visibility logic
+            const felixIcon = document.getElementById('felixIcon');
+            const felixTextbox = document.getElementById('felixTextbox');
+            if (pageId === 'profile') {
+                felixIcon.style.display = 'none';
+                felixTextbox.style.display = 'none';
+                felixTextbox.value = '';
+                isExpanded = false;
+            } else {
+                felixIcon.style.display = 'block';
+            }
         }
 
         // Story Generation Functions
         function startNewStory() {
             const textDisplay = document.getElementById('textDisplay');
+            const startBtn = document.querySelector('.start-story-btn');
+            textDisplay.classList.remove('slide-in');
+            textDisplay.classList.add('slide-up');
             textDisplay.innerHTML = '<p>Generating your story... Please wait!</p>';
-            
+
+            // Remove move-in class if present
+            if (startBtn) {
+                startBtn.classList.remove('move-in');
+            }
+
             // Simulate story generation (replace with actual API call)
             setTimeout(() => {
                 const sampleStories = [
@@ -639,12 +712,34 @@
                     "The old lighthouse stood tall against the stormy sky, its beam cutting through the darkness like a sword of light. Sarah had always been drawn to this place, ever since she was a little girl...",
                     "In the depths of the enchanted forest, where the trees whispered secrets and the flowers sang lullabies, there was a hidden cottage that only appeared to those who truly believed in magic..."
                 ];
-                
+
                 const randomStory = sampleStories[Math.floor(Math.random() * sampleStories.length)];
-                textDisplay.innerHTML = `<p>${randomStory}</p>`;
-                
+                // Animate text out, then slide in new story
+                textDisplay.classList.add('slide-up');
+                setTimeout(() => {
+                    textDisplay.innerHTML = `<p>${randomStory}</p>`;
+                    textDisplay.classList.remove('slide-up');
+                    textDisplay.classList.add('slide-in');
+                }, 400);
+
                 // Add to previous stories
                 addToPreviousStories(randomStory);
+
+                // Animate button out, then move and animate in
+                if (startBtn) {
+                    startBtn.classList.add('move-out');
+                    setTimeout(() => {
+                        startBtn.classList.remove('move-out');
+                        const previousStories = document.querySelector('.previous-stories');
+                        if (previousStories) {
+                            previousStories.parentNode.insertBefore(startBtn, previousStories);
+                        }
+                        // Animate in
+                        setTimeout(() => {
+                            startBtn.classList.add('move-in');
+                        }, 10);
+                    }, 300);
+                }
             }, 2000);
         }
 
@@ -795,25 +890,46 @@
 
         // Felix Icon Functionality
         let isExpanded = false;
+        let outsideClickListener = null;
+
+        function collapseFelix() {
+            const felixIcon = document.getElementById('felixIcon');
+            const felixTextbox = document.getElementById('felixTextbox');
+            felixIcon.classList.remove('expanded');
+            felixIcon.style.opacity = '1';
+            felixTextbox.style.opacity = '0';
+            setTimeout(() => {
+                felixTextbox.style.display = 'none';
+                felixTextbox.value = '';
+            }, 400);
+            isExpanded = false;
+            if (outsideClickListener) {
+                document.removeEventListener('mousedown', outsideClickListener);
+                outsideClickListener = null;
+            }
+        }
 
         function handleFelixClick() {
             const felixIcon = document.getElementById('felixIcon');
             const felixTextbox = document.getElementById('felixTextbox');
-            
             if (!isExpanded) {
-                // Expand Felix into text box
                 felixIcon.classList.add('expanded');
-                felixIcon.style.display = 'none';
-                felixTextbox.style.display = 'block';
-                felixTextbox.focus();
+                setTimeout(() => {
+                    felixIcon.style.opacity = '0';
+                    felixTextbox.style.display = 'block';
+                    felixTextbox.style.opacity = '1';
+                    felixTextbox.focus();
+                }, 300); // Wait for animation
                 isExpanded = true;
+                // Add outside click listener
+                outsideClickListener = function(event) {
+                    if (isExpanded && !felixTextbox.contains(event.target) && event.target !== felixIcon) {
+                        collapseFelix();
+                    }
+                };
+                document.addEventListener('mousedown', outsideClickListener);
             } else {
-                // Collapse back to icon
-                felixIcon.classList.remove('expanded');
-                felixIcon.style.display = 'block';
-                felixTextbox.style.display = 'none';
-                felixTextbox.value = '';
-                isExpanded = false;
+                collapseFelix();
             }
         }
 
@@ -824,14 +940,13 @@
                     console.log('User asked Felix:', userInput);
                     // You can add response logic here
                     alert(`Felix says: "Thanks for asking: ${userInput}" 🦊`);
-                    
                     // Clear input and collapse
                     event.target.value = '';
-                    handleFelixClick();
+                    collapseFelix();
                 }
             } else if (event.key === 'Escape') {
                 // Collapse on escape
-                handleFelixClick();
+                collapseFelix();
             }
         }
 

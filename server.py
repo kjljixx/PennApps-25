@@ -1,6 +1,8 @@
 import http.server
 import socketserver
 import backend
+import markdown
+import traceback
 import os
 from urllib.parse import urlparse, parse_qs
 
@@ -68,18 +70,40 @@ class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         # Handle POST requests
         content_length = int(self.headers.get('Content-Length', 0))
         post_data = self.rfile.read(content_length)
-        
+        print(self.path)
         if self.path == '/api/data':
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
             self.end_headers()
             response = f'{{"received_data": "{post_data.decode()}", "method": "POST"}}'
             self.wfile.write(response.encode('utf-8'))
+        elif self.path == '/api/generate_story':
+            import json
+            try:
+                data = json.loads(post_data)
+                topic = data.get('topic', 'default topic')
+                language = data.get('language', 'English')
+                world_file = data.get('world_file', 'data/world0.json')
+                prompt_base = backend.prompt_bases[1]  # Use story prompt
+                story, ended = backend.generate_content(prompt_base, topic, language, world_file)
+                response = {"story": story, "ended": ended}
+                self.send_response(200)
+                self.send_header('Content-type', 'text/html')
+                self.end_headers()
+                self.wfile.write(markdown.markdown(story).encode('utf-8'))
+                #self.wfile.write(markdown.markdown(story.encode('utf-8')))
+            except Exception as e:
+                print(traceback.format_exc())
+                print("Error generating story:", e)
+                self.send_response(500)
+                self.send_header('Content-type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode('utf-8'))
         else:
             self.send_response(404)
-            self.send_header('Content-type', 'text/plain')
+            self.send_header('Content-type', 'application/json')
             self.end_headers()
-            self.wfile.write(b'POST endpoint not found')
+            self.wfile.write(b'{"error": "POST endpoint not found"}')
 
 def start_server(port=8000):
     """Start the HTTP server on the specified port"""
@@ -99,5 +123,5 @@ def start_server(port=8000):
 
 if __name__ == "__main__":
     # Default port is 8000, but you can change it here
-    PORT = 8000
+    PORT = 8003
     start_server(PORT)

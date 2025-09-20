@@ -15,24 +15,25 @@ class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.send_header('Content-type', 'text/html')
             self.end_headers()
             
-            html_content = """
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <title>Basic Python Server</title>
-            </head>
-            <body>
-                <h1>Welcome to Basic Python Server!</h1>
-                <p>Server is running successfully on localhost.</p>
-                <ul>
-                    <li><a href="/hello">Hello endpoint</a></li>
-                    <li><a href="/api/status">API Status</a></li>
-                    <li><a href="/api/echo?message=Hello World">Echo API</a></li>
-                </ul>
-            </body>
-            </html>
-            """
-            self.wfile.write(html_content.encode('utf-8'))
+            # Read and serve the duo.html file
+            try:
+                with open('duo.html', 'r', encoding='utf-8') as file:
+                    html_content = file.read()
+                self.wfile.write(html_content.encode('utf-8'))
+            except FileNotFoundError:
+                error_html = """
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>File Not Found</title>
+                </head>
+                <body>
+                    <h1>Error: duo.html not found</h1>
+                    <p>Please make sure duo.html exists in the same directory as server.py</p>
+                </body>
+                </html>
+                """
+                self.wfile.write(error_html.encode('utf-8'))
             
         elif parsed_path.path == '/hello':
             self.send_response(200)

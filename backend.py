@@ -29,12 +29,14 @@ prompt_bases = [
     THE STRANGER: Greetings, Alice. Your adventure awaits!\n
     ALICE: Who are you? What adventure?\n
     ...(scene continues, this is just a snippet)\n
-    Respond with ONLY the scene in the format described above, do not include any other text. Include AT LEAST 20 lines of dialogue and stage directions.\n
-    Please continue the play below (the CURRENT play consists of the text IN "Current Content") by first adding a summary of the play, focusing on what you plan to write about in the current scene (including characterization and plot) and potential directions for the story after this scene, enclosed in <info></info> tags, and then add ONE scene.\n
-    If there are currently no scenes IN "Current Content", please begin the play with the title of the play (in # heading 1), then ONE introductory scene.\n
-    If you reach a conclusion to the ENTIRE play after this scene, end it with a line saying ### THE END. (in the language of the play). Then, in a new line, write <end>\n
-    Otherwise, end the scene with a NEWLINE after the last line of dialogue or stage directions of the CURRENT scene.\n
-    Do not include the name of the next scene. Note that a good play should have around 5 scenes.\n
+    Respond with ONLY the scene that continues the current play (the CURRENT play consists of the text IN "Current Content") in the format described above, do not include any other text. Include AT LEAST 20 lines of dialogue and stage directions.\n
+    START your response by first adding a summary of the play, focusing on what you plan to write about in the current scene (including characterization and plot) and potential directions for the story after this scene, enclosed in <info></info> tags (each of the opening and closing info tags should receive their own line).\n
+    IF there are currently no scenes IN "Current Content", please begin the play with the title of the play (in # heading 1)\n
+    THEN, add ONE scene that continues the current play.\n
+    NEXT, please write a brief summary enclosed in <summary></summary> tags (each of the opening and closing summary tags should receive their own line) of the scene you just wrote\n
+    FINALLY, IF you reach a conclusion to the ENTIRE play after this scene, end it with a line saying ### THE END. (in the language given). Then, in a new line, write <end>\n
+    OTHERWISE, end the scene with a NEWLINE after the last line of dialogue or stage directions of the CURRENT scene.\n
+    DO NOT include the name of the next scene. Note that a good play should have around 5 scenes.\n
     """,
     """
     You will generate a short story about the given topic in the given language in markdown.\n
@@ -42,14 +44,16 @@ prompt_bases = [
     Use # Heading 1 for the name of the story\n
     Respond with ONLY the story, do not include any other text. An example of a story in terms of length, plot complexity, and characterization is The Gift of the Magi.\n
     (Note: Do NOT use this as a style or plot reference unless it would fit the topic; use this example as a reference for how complex your plot and characters should be).\n
-    Please begin by first adding a summary of the story, focusing on what you plan to write about (separate into Exposition, Inciting Incident, Rising Action, Climax, Falling Action, Resolution) (including characterization and plot) and potential directions for the story, enclosed in <info></info> tags, and then write the story.\n
-    End the story with a line saying ### THE END. (in the language of the story). Then, in a new line, write <end>\n
+    Please BEGIN by first adding a summary of the story, focusing on what you plan to write about (separate into Exposition, Inciting Incident, Rising Action, Climax, Falling Action, Resolution) (including characterization and plot) and potential directions for the story, enclosed in <info></info> tags (each of the opening and closing info tags should receive their own line)\n
+    THEN, write the story, based on the given guidelines.\n
+    AFTER you finish writing the story, please write a brief summary enclosed in <summary></summary> tags (each of the opening and closing summary tags should receive their own line) of the story you just wrote\n
+    END the story with a final line saying ### THE END. (in the language given). Then, in a new line, write <end>\n
     Note that good stories should have highly descriptive language (including literary and rhetorical devices), and be AT LEAST 1000 words long.\n
     """
 ]
 
 def get_full_prompt(prompt_base, topic, language, world, current_content):
-    return prompt_base + f"Topic: {topic}\nLanguage: {language}\nWorld: {world}\nCurrent Content:\n" + current_content
+    return prompt_base + f"Topic: {topic}\nLanguage: {language}\nWorld: {world}\nCurrent Content:\n" + current_content + "\nTo repeat for clarity:\n" +prompt_base
 
 def get_response(prompt):
     response = client.chat.completions.create(
@@ -66,15 +70,20 @@ def get_response(prompt):
 def get_text(content):
     lines = content.split("\n")
     in_info = False
+    in_summary = False
     filtered_lines = []
     for line in lines:
         if line.startswith("<info>"):
             in_info = True
         elif line.startswith("</info>"):
             in_info = False
+        elif line.startswith("<summary>"):
+            in_summary = True
+        elif line.startswith("</summary>"):
+            in_summary = False
         elif line.startswith("<end>"):
             break
-        elif not in_info:
+        elif not in_info and not in_summary:
             filtered_lines.append(line)
     return "\n".join(filtered_lines).strip()
 
@@ -91,6 +100,19 @@ def get_info(content):
             info_lines.append(line)
     return "\n".join(info_lines).strip()
 
+def get_summary(content):
+    lines = content.split("\n")
+    in_summary = False
+    summary_lines = []
+    for line in lines:
+        if line.startswith("<summary>"):
+            in_summary = True
+        elif line.startswith("</summary>"):
+            in_summary = False
+        elif in_summary:
+            summary_lines.append(line)
+    return "\n".join(summary_lines).strip()
+
 def generate_content(prompt_base, topic, language, world_file, current_content_idx: Union[int, str] = "new"):
     with open(world_file, "r") as f:
         world = json.load(f)
@@ -100,7 +122,7 @@ def generate_content(prompt_base, topic, language, world_file, current_content_i
 
     concise_world = copy.deepcopy(world)
     for i in range(len(world["backstory"])):
-        concise_world["backstory"][i] = get_info(world["backstory"][i])
+        concise_world["backstory"][i] = get_summary(world["backstory"][i])
     concise_world["backstory"][current_content_idx] = ""
 
     response = get_response(
@@ -108,6 +130,7 @@ def generate_content(prompt_base, topic, language, world_file, current_content_i
             prompt_base, topic, language,
             '{"Description":' + json.dumps(concise_world["description"]) + ', "Previous Plots/Stories":' + json.dumps(concise_world["backstory"]) + '}',
             world["backstory"][current_content_idx] if world["backstory"][current_content_idx] != "" else "<empty>"))
+    print(response.usage.total_tokens) # type: ignore
     completion = "\n" + response.choices[0].message.content # type: ignore
 
     world["backstory"][current_content_idx] += completion
@@ -142,4 +165,3 @@ if __name__ == "__main__":
         f.write(get_text(completion))
     if ended:
         completion = ""
-    input("Press Enter to continue...")  # Pause between iterations for user to review

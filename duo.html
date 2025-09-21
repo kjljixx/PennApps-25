@@ -705,26 +705,30 @@
             textDisplay.classList.remove('slide-in');
             textDisplay.classList.remove('slide-up');
 
-            // Simulate story generation (replace with actual API call)
-            setTimeout(() => {
-                const sampleStories = [
-                    "Once upon a time, in a magical kingdom far beyond the mountains, there lived a young wizard who had the power to bring stories to life. Every morning, he would wake up and create new adventures for the children of the village...",
-                    "The old lighthouse stood tall against the stormy sky, its beam cutting through the darkness like a sword of light. Sarah had always been drawn to this place, ever since she was a little girl...",
-                    "In the depths of the enchanted forest, where the trees whispered secrets and the flowers sang lullabies, there was a hidden cottage that only appeared to those who truly believed in magic..."
-                ];
-
-                const randomStory = sampleStories[Math.floor(Math.random() * sampleStories.length)];
+            // Fetch story from backend API
+            fetch('/api/generate_story', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    topic: 'adventure', // You can customize or get from user input
+                    language: 'English',
+                    world_file: 'data/world0.json'
+                })
+            })
+            .then(response => response.text())
+            .then(data => {
+                console.log('Generated story:', data);
                 // Animate text out only after story is ready
                 textDisplay.classList.add('slide-up');
                 setTimeout(() => {
-                    textDisplay.innerHTML = `<p>${randomStory}</p>`;
+                    textDisplay.innerHTML = `<span>${data}</span>`;
                     textDisplay.classList.remove('slide-up');
                     textDisplay.classList.add('slide-in');
                 }, 400);
-
                 // Add to previous stories
-                addToPreviousStories(randomStory);
-
+                addToPreviousStories(data);
                 // Animate button out, then move and animate in
                 if (startBtn) {
                     startBtn.classList.add('move-out');
@@ -740,7 +744,30 @@
                         }, 10);
                     }, 300);
                 }
-            }, 2000);
+            })
+            .catch(async error => {
+                let errorMsg = 'Error generating story:';
+                if (error instanceof Response) {
+                    try {
+                        const errJson = await error.json();
+                        errorMsg += ' ' + (errJson.error || JSON.stringify(errJson));
+                    } catch (e) {
+                        // If not valid JSON, try to get raw text
+                        try {
+                            const errText = await error.text();
+                            errorMsg += ' ' + errText;
+                        } catch (e2) {
+                            errorMsg += ' ' + error.statusText;
+                        }
+                    }
+                } else if (error && error.message) {
+                    errorMsg += ' ' + error.message;
+                } else {
+                    errorMsg += ' ' + error;
+                }
+                console.error(errorMsg);
+                textDisplay.innerHTML = `<p>${errorMsg}</p>`;
+            });
         }
 
         function addToPreviousStories(story) {

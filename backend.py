@@ -83,12 +83,8 @@ def generate_content(prompt_base, topic, language, world_file, current_content_i
     if current_content_idx == "new":
         world["backstory"].append("")
         current_content_idx = len(world["backstory"]) - 1
-    response = get_response(get_full_prompt(prompt_base, topic, language, json.dumps(world), world["backstory"][current_content_idx]))
-    assert isinstance(response, cerebras_types.ChatCompletion)
-    assert isinstance(response.choices, list)
-    assert isinstance(response.choices[0].message, cerebras_types.chat_completion.ChatCompletionResponseChoiceMessage)
-    assert isinstance(response.choices[0].message.content, str)
-    completion = "\n" + response.choices[0].message.content
+    response = get_response(get_full_prompt(prompt_base, topic, language, json.dumps(world), world["backstory"][current_content_idx] if world["backstory"][current_content_idx] != "" else "<empty>"))
+    completion = "\n" + response.choices[0].message.content # type: ignore
     world["backstory"][current_content_idx] += completion
     with open(world_file, "w") as f:
         json.dump(world, f)
@@ -103,11 +99,22 @@ def create_new_world(name, description):
         json.dump(world, f)
     return
 
+def clear_world(name):
+    with open(f"data/{name}.json", "r") as f:
+        world = json.load(f)
+    world["backstory"] = []
+    with open(f"data/{name}.json", "w") as f:
+        json.dump(world, f)
+    return
+
 if __name__ == "__main__":
   completion = ""
   ended = False
-  while not ended:
+  clear_world("world0")
+  while True:
     completion, ended = generate_content(prompt_bases[0], "discovering mars", "English", "data/world0.json", "new" if completion == "" else -1)
     with open("output.md", "w") as f:
         f.write(get_text(completion))
+    if ended:
+        completion = ""
     input("Press Enter to continue...")  # Pause between iterations for user to review

@@ -1335,18 +1335,18 @@
 
     function showTranslationTooltip(text, x, y) {
       const tooltip = createTranslationTooltip();
-      
+
       // Show loading state
       tooltip.innerHTML = `
         <div class="translation-original">${text}</div>
         <div class="translation-loading">Translating...</div>
       `;
-      
+
       // Position tooltip
       tooltip.style.left = `${x}px`;
       tooltip.style.top = `${y - 60}px`; // Position above the selection
       tooltip.classList.add('show');
-      
+
       // Call translation API
       translateText(text).then(translation => {
         if (translation.success) {
@@ -1354,18 +1354,18 @@
             <div class="translation-original">${text}</div>
             <div class="translation-result">${translation.translated_text}</div>
           `;
-          
+
           // Add language detection info if available
           if (translation.source_language && translation.source_language !== 'auto') {
             tooltipContent += `<div style="font-size: 0.8rem; color: #ccc; margin-top: 4px;">Detected: ${translation.source_language.toUpperCase()}</div>`;
           }
-          
+
           // Add alternative translations if available
           if (translation.additional_translations && translation.additional_translations.length > 0) {
             const alternatives = translation.additional_translations.slice(0, 3).join(', ');
             tooltipContent += `<div style="font-size: 0.8rem; color: #ccc; margin-top: 4px;">Also: ${alternatives}</div>`;
           }
-          
+
           tooltip.innerHTML = tooltipContent;
         } else {
           tooltip.innerHTML = `
@@ -1401,7 +1401,7 @@
             target: 'en'
           })
         });
-        
+
         return await response.json();
       } catch (error) {
         console.error('Translation request failed:', error);
@@ -1410,19 +1410,19 @@
     }
 
     // Handle text selection
-    document.addEventListener('mouseup', function(event) {
+    document.addEventListener('mouseup', function (event) {
       // Small delay to ensure selection is complete
       setTimeout(() => {
         const selection = window.getSelection();
         const selectedText = selection.toString().trim();
-        
+
         if (selectedText && selectedText.length > 1) {
           // Get selection coordinates
           const range = selection.getRangeAt(0);
           const rect = range.getBoundingClientRect();
           const x = rect.left + (rect.width / 2);
           const y = rect.top + window.scrollY;
-          
+
           // Show translation tooltip
           showTranslationTooltip(selectedText, x, y);
         } else {
@@ -1432,14 +1432,14 @@
     });
 
     // Hide tooltip when clicking elsewhere
-    document.addEventListener('click', function(event) {
+    document.addEventListener('click', function (event) {
       if (!event.target.closest('.translation-tooltip')) {
         hideTranslationTooltip();
       }
     });
 
     // Hide tooltip when pressing escape
-    document.addEventListener('keydown', function(event) {
+    document.addEventListener('keydown', function (event) {
       if (event.key === 'Escape') {
         hideTranslationTooltip();
       }

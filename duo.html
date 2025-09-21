@@ -380,12 +380,11 @@
 
     /* Profile Page Styles */
     .profile-container {
-      background-color: #E9ECEF;
-      /* Balance color for cards */
-      border-radius: 8px;
-      padding: 1.6rem;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      text-align: center;
+  background-color: transparent;
+  border-radius: 0;
+  padding: 0;
+  box-shadow: none;
+  text-align: center;
     }
 
     .profile-picture {
@@ -873,20 +872,7 @@
             felixInput.remove();
             langSelect.remove();
             formatSelect.remove();
-            // Move Continue button below previous stories after NSF disappears (after Enter)
-            if (continueBtn) {
-              continueBtn.classList.add('move-out');
-              setTimeout(() => {
-                continueBtn.classList.remove('move-out');
-                const previousStories = document.querySelector('.previous-stories');
-                if (previousStories) {
-                  previousStories.parentNode.insertBefore(continueBtn, previousStories);
-                }
-                setTimeout(() => {
-                  continueBtn.classList.add('move-in');
-                }, 10);
-              }, 300);
-            }
+            // Keep Continue button next to New Story until story is generated
             // Call the callback with user input, language, and format
             if (typeof callback === 'function') {
               callback(prompt, language, format);
@@ -1027,15 +1013,19 @@
               textDisplay.classList.add('slide-in');
             }, 400);
             addToPreviousStories(data);
+            // Move Continue button below previous stories only after story is generated
             const continueBtn = buttons[1];
             if (continueBtn) {
+              // First fade out
               continueBtn.classList.add('move-out');
               setTimeout(() => {
+                // Then move to new position
                 continueBtn.classList.remove('move-out');
                 const previousStories = document.querySelector('.previous-stories');
                 if (previousStories) {
                   previousStories.parentNode.insertBefore(continueBtn, previousStories);
                 }
+                // Finally fade in at new position
                 setTimeout(() => {
                   continueBtn.classList.add('move-in');
                 }, 10);

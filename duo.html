@@ -85,6 +85,7 @@
             max-width: 1200px;
             margin: 5rem auto 0 auto;
             padding: 1.6rem;
+            align-self: left;
         }
 
         /* Page Sections */
@@ -430,7 +431,7 @@
             left: 1.6rem;
             width: 4.8rem;
             height: 4.8rem;
-            background-image: url('felixthefox.png');
+            background-image: url('static/felixthefox.png');
             background-size: contain;
             background-repeat: no-repeat;
             background-position: center;
@@ -560,7 +561,8 @@
         <div id="chat" class="page active">
             <div class="chat-container">
                 <!-- <h1 style="color: #2E8B57; font-family: 'Poppins', sans-serif; font-weight: 700; margin-bottom: 360 px;">Story Generator</h1> -->
-                <button class="start-story-btn" onclick="startNewStory()">Start New Story</button>
+                <button class="start-story-btn" onclick="handleStoryButton(0)">New Story</button>
+                <button class="start-story-btn" onclick="handleStoryButton(1)" style="margin-left: 1rem;">Continue</button>
                 
                 <div class="text-display" id="textDisplay">
                     <p> </p>
@@ -569,14 +571,7 @@
                 <div class="previous-stories">
                     <h3>Previous Stories</h3>
                     <ul class="story-list" id="storyList">
-                        <li class="story-item">
-                            <div class="story-title">Sample Story 1</div>
-                            <div class="story-preview">Once upon a time, in a land far away...</div>
-                        </li>
-                        <li class="story-item">
-                            <div class="story-title">Sample Story 2</div>
-                            <div class="story-preview">The mysterious forest held many secrets...</div>
-                        </li>
+                        
                     </ul>
                 </div>
             </div>
@@ -693,13 +688,11 @@
         }
 
         // Story Generation Functions
-        function startNewStory() {
+        function handleStoryButton(btnIndex) {
             const textDisplay = document.getElementById('textDisplay');
-            const startBtn = document.querySelector('.start-story-btn');
+            const buttons = document.querySelectorAll('.start-story-btn');
             // Remove move-in class if present
-            if (startBtn) {
-                startBtn.classList.remove('move-in');
-            }
+            buttons.forEach(btn => btn.classList.remove('move-in'));
             // Show loading text immediately, but don't animate out yet
             textDisplay.innerHTML = '<p>Generating your story... Please wait!</p>';
             textDisplay.classList.remove('slide-in');
@@ -729,18 +722,19 @@
                 }, 400);
                 // Add to previous stories
                 addToPreviousStories(data);
-                // Animate button out, then move and animate in
-                if (startBtn) {
-                    startBtn.classList.add('move-out');
+                // Animate Continue button out, then move and animate in
+                const continueBtn = buttons[1];
+                if (continueBtn) {
+                    continueBtn.classList.add('move-out');
                     setTimeout(() => {
-                        startBtn.classList.remove('move-out');
+                        continueBtn.classList.remove('move-out');
                         const previousStories = document.querySelector('.previous-stories');
                         if (previousStories) {
-                            previousStories.parentNode.insertBefore(startBtn, previousStories);
+                            previousStories.parentNode.insertBefore(continueBtn, previousStories);
                         }
                         // Animate in
                         setTimeout(() => {
-                            startBtn.classList.add('move-in');
+                            continueBtn.classList.add('move-in');
                         }, 10);
                     }, 300);
                 }
@@ -770,14 +764,46 @@
             });
         }
 
+        function continueStory() {
+            const continueBtn = document.querySelectorAll('.start-story-btn')[1];
+            if (continueBtn) {
+                continueBtn.classList.add('move-out');
+                setTimeout(() => {
+                    continueBtn.classList.remove('move-out');
+                    const previousStories = document.querySelector('.previous-stories');
+                    if (previousStories) {
+                        previousStories.parentNode.insertBefore(continueBtn, previousStories);
+                    }
+                    // Animate in
+                    setTimeout(() => {
+                        continueBtn.classList.add('move-in');
+                    }, 10);
+                }, 300);
+            }
+        }
+
         function addToPreviousStories(story) {
             const storyList = document.getElementById('storyList');
             const storyItem = document.createElement('li');
             storyItem.className = 'story-item';
             storyItem.innerHTML = `
-                <div class="story-title">Story ${storyList.children.length + 1}</div>
-                <div class="story-preview">${story.substring(0, 100)}...</div>
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                    <img src="static/unfilled_heart.png" class="heart-icon" style="width: 28px; height: 28px; cursor: pointer; margin-right: 1rem;" alt="Heart">
+                    <div style="display: flex; flex-direction: column; align-items: center; flex: 1;">
+                        <div class="story-title" style="text-align: center; width: 100%;">Story ${storyList.children.length + 1}</div>
+                        <div class="story-preview" style="text-align: center; width: 100%;">${story.substring(0, 100)}...</div>
+                    </div>
+                    <img src="static/trash.png" class="trash-icon" style="width: 28px; height: 28px; cursor: pointer; margin-left: 1rem;" alt="Trash">
+                </div>
             `;
+            storyItem.querySelector('.trash-icon').onclick = (e) => {
+                e.stopPropagation();
+                storyItem.remove();
+            };
+            storyItem.querySelector('.heart-icon').onclick = (e) => {
+                e.stopPropagation();
+                // You can add heart functionality here later
+            };
             storyItem.onclick = () => {
                 document.getElementById('textDisplay').innerHTML = `<p>${story}</p>`;
             };

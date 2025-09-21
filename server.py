@@ -11,13 +11,34 @@ class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         # Parse the URL and query parameters
         parsed_path = urlparse(self.path)
         query_params = parse_qs(parsed_path.query)
-        
+
+        # Serve static files from /static/
+        if parsed_path.path.startswith('/static/'):
+            static_file_path = os.path.join(os.getcwd(), parsed_path.path.lstrip('/'))
+            if os.path.isfile(static_file_path):
+                self.send_response(200)
+                # Set correct content type for PNG
+                if static_file_path.endswith('.png'):
+                    self.send_header('Content-type', 'image/png')
+                elif static_file_path.endswith('.jpg') or static_file_path.endswith('.jpeg'):
+                    self.send_header('Content-type', 'image/jpeg')
+                else:
+                    self.send_header('Content-type', 'application/octet-stream')
+                self.end_headers()
+                with open(static_file_path, 'rb') as f:
+                    self.wfile.write(f.read())
+            else:
+                self.send_response(404)
+                self.send_header('Content-type', 'text/html')
+                self.end_headers()
+                self.wfile.write(b'<h1>404 - Static File Not Found</h1>')
+            return
+
         # Handle different routes
         if parsed_path.path == '/':
             self.send_response(200)
             self.send_header('Content-type', 'text/html')
             self.end_headers()
-            
             # Read and serve the duo.html file
             try:
                 with open('duo.html', 'r', encoding='utf-8') as file:
@@ -37,20 +58,20 @@ class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                 </html>
                 """
                 self.wfile.write(error_html.encode('utf-8'))
-            
+
         elif parsed_path.path == '/hello':
             self.send_response(200)
             self.send_header('Content-type', 'text/plain')
             self.end_headers()
             self.wfile.write(b'Hello from Python server!')
-            
+
         elif parsed_path.path == '/api/status':
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
             self.end_headers()
             response = '{"status": "running", "message": "Server is healthy"}'
             self.wfile.write(response.encode('utf-8'))
-            
+
         elif parsed_path.path == '/api/echo':
             message = query_params.get('message', ['No message provided'])[0]
             self.send_response(200)
@@ -58,7 +79,7 @@ class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.end_headers()
             response = f'{{"echo": "{message}"}}'
             self.wfile.write(response.encode('utf-8'))
-            
+
         else:
             # Handle 404 for unknown paths
             self.send_response(404)

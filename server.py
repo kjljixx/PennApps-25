@@ -105,8 +105,9 @@ class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                 topic = data.get('topic', 'default topic')
                 language = data.get('language', 'English')
                 world_file = data.get('world_file', 'data/world0.json')
+                current_content_idx = data.get('current_content_idx', 'new')
                 prompt_base = backend.prompt_bases[0]  # Use story prompt
-                story, ended = backend.generate_content(prompt_base, topic, language, world_file)
+                story, ended = backend.generate_content(prompt_base, topic, language, world_file, current_content_idx)
                 response = {"story": story, "ended": ended}
                 self.send_response(200)
                 self.send_header('Content-type', 'text/html')

@@ -153,6 +153,69 @@ class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                 self.end_headers()
                 response = {"success": False, "error": str(e)}
                 self.wfile.write(json.dumps(response).encode('utf-8'))
+        elif self.path == '/api/translate':
+            import json
+            import requests
+            try:
+                data = json.loads(post_data)
+                text = data.get('text', '')
+                source_lang = data.get('source', 'auto')  # Auto-detect source language
+                target_lang = data.get('target', 'en')    # Default to English
+                
+                if not text.strip():
+                    raise ValueError("No text provided for translation")
+                
+                # Use Free Translate API from ftapi.pythonanywhere.com
+                base_url = "https://ftapi.pythonanywhere.com/translate"
+                
+                # Build URL parameters - use auto-detect if source is 'auto'
+                if source_lang == 'auto':
+                    # Use the auto-detect method (second way - only dl and text)
+                    url = f"{base_url}?dl={target_lang}&text={requests.utils.quote(text)}"
+                else:
+                    # Use the explicit source language method (first way - sl, dl, and text)
+                    url = f"{base_url}?sl={source_lang}&dl={target_lang}&text={requests.utils.quote(text)}"
+                
+                # Make request to Free Translate API
+                response = requests.get(url, timeout=15)
+                
+                if response.status_code == 200:
+                    result = response.json()
+                    translated_text = result.get('destination-text', '')
+                    detected_source = result.get('source-language', source_lang)
+                    
+                    self.send_response(200)
+                    self.send_header('Content-type', 'application/json')
+                    self.end_headers()
+                    
+                    response_data = {
+                        "success": True,
+                        "original_text": text,
+                        "translated_text": translated_text,
+                        "source_language": detected_source,
+                        "target_language": target_lang,
+                        "pronunciation": result.get('pronunciation', {}),
+                        "additional_translations": result.get('translations', {}).get('possible-translations', [])
+                    }
+                    self.wfile.write(json.dumps(response_data).encode('utf-8'))
+                else:
+                    raise Exception(f"Translation API returned status {response.status_code}: {response.text}")
+                    
+            except requests.RequestException as e:
+                print(f"Network error during translation: {e}")
+                self.send_response(503)
+                self.send_header('Content-type', 'application/json')
+                self.end_headers()
+                response = {"success": False, "error": "Translation service unavailable"}
+                self.wfile.write(json.dumps(response).encode('utf-8'))
+            except Exception as e:
+                print(traceback.format_exc())
+                print("Error translating text:", e)
+                self.send_response(500)
+                self.send_header('Content-type', 'application/json')
+                self.end_headers()
+                response = {"success": False, "error": str(e)}
+                self.wfile.write(json.dumps(response).encode('utf-8'))
         else:
             self.send_response(404)
             self.send_header('Content-type', 'application/json')

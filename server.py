@@ -80,6 +80,77 @@ class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             response = f'{{"echo": "{message}"}}'
             self.wfile.write(response.encode('utf-8'))
 
+        elif parsed_path.path == '/api/get_all_stories':
+            import json
+            import glob
+            try:
+                # Find all world files
+                world_files = glob.glob('data/*.json')
+                worlds = []
+                
+                for world_file in world_files:
+                    try:
+                        with open(world_file, 'r') as f:
+                            world_data = json.load(f)
+                        
+                        world_name = os.path.basename(world_file).replace('.json', '')
+                        world_description = world_data.get('description', 'No description')
+                        backstory = world_data.get('backstory', [])
+                        
+                        # Create stories array for this world
+                        stories = []
+                        for i, story_content in enumerate(backstory):
+                            story_content = backend.get_text(story_content)
+                            if story_content.strip():  # Only include non-empty stories
+                                # Extract title from the story content if it has one
+                                title = f"Story {i+1}"
+                                if story_content.startswith('# '):
+                                    first_line = story_content.split('\n')[0]
+                                    title = first_line.replace('# ', '').strip()
+                                
+                                # Create a preview (first 200 characters)
+                                preview = story_content.replace('\n', ' ').strip()
+                                if len(preview) > 200:
+                                    preview = preview[:200] + "..."
+                                
+                                stories.append({
+                                    "id": f"{world_name}_{i}",
+                                    "title": title,
+                                    "preview": preview,
+                                    "content": story_content,
+                                    "story_index": i
+                                })
+                        
+                        # Add world object with its stories
+                        worlds.append({
+                            "name": world_name,
+                            "description": world_description,
+                            "stories": stories
+                        })
+                        
+                    except Exception as e:
+                        print(f"Error reading world file {world_file}: {e}")
+                        continue
+                
+                self.send_response(200)
+                self.send_header('Content-type', 'application/json')
+                self.end_headers()
+                response = {
+                    "success": True,
+                    "worlds": worlds,
+                    "total_count": sum(len(world["stories"]) for world in worlds)
+                }
+                self.wfile.write(json.dumps(response).encode('utf-8'))
+                
+            except Exception as e:
+                print(traceback.format_exc())
+                print("Error getting stories:", e)
+                self.send_response(500)
+                self.send_header('Content-type', 'application/json')
+                self.end_headers()
+                response = {"success": False, "error": str(e)}
+                self.wfile.write(json.dumps(response).encode('utf-8'))
+
         else:
             # Handle 404 for unknown paths
             self.send_response(404)
@@ -219,6 +290,57 @@ class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             except Exception as e:
                 print(traceback.format_exc())
                 print("Error translating text:", e)
+                self.send_response(500)
+                self.send_header('Content-type', 'application/json')
+                self.end_headers()
+                response = {"success": False, "error": str(e)}
+                self.wfile.write(json.dumps(response).encode('utf-8'))
+        elif self.path == '/api/create_world':
+            import json
+            import glob
+            try:
+                data = json.loads(post_data)
+                world_name = data.get('name', '').strip()
+                world_description = data.get('description', '').strip()
+                
+                if not world_name:
+                    raise ValueError("World name is required")
+                
+                if not world_description:
+                    raise ValueError("World description is required")
+                
+                # Sanitize world name (remove special characters)
+                import re
+                world_name = re.sub(r'[^a-zA-Z0-9_-]', '', world_name)
+                
+                # Check if world already exists
+                world_file_path = f"data/{world_name}.json"
+                if os.path.exists(world_file_path):
+                    raise ValueError(f"World '{world_name}' already exists")
+                
+                # Create new world file
+                new_world = {
+                    "description": world_description,
+                    "backstory": []
+                }
+                
+                with open(world_file_path, 'w') as f:
+                    json.dump(new_world, f, indent=2)
+                
+                self.send_response(200)
+                self.send_header('Content-type', 'application/json')
+                self.end_headers()
+                response = {
+                    "success": True,
+                    "message": f"World '{world_name}' created successfully",
+                    "world_name": world_name,
+                    "file_path": world_file_path
+                }
+                self.wfile.write(json.dumps(response).encode('utf-8'))
+                
+            except Exception as e:
+                print(traceback.format_exc())
+                print("Error creating world:", e)
                 self.send_response(500)
                 self.send_header('Content-type', 'application/json')
                 self.end_headers()

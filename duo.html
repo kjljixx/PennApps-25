@@ -9,9 +9,67 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
-    href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Merriweather:wght@300;400;700&family=Patrick+Hand&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Merriweather:wtml@300;400;700&family=Patrick+Hand&display=swap"
     rel="stylesheet">
+  <!-- Markdown rendering library -->
+  <script src="https://cdn.jsdelivr.net/npm/marked@9.1.6/marked.min.js"></script>
   <style>
+    /* CSS Variables for Theme Support */
+    :root {
+      --bg-primary: #FDFCF7;
+      --bg-secondary: #FFFFFF;
+      --text-primary: #1C1C1C;
+      --text-secondary: #5A5A5A;
+      --text-muted: #999999;
+      --accent-primary: #2E8B57;
+      --accent-secondary: #90EE90;
+      --accent-tertiary: rgba(144, 238, 144, 0.95);
+      --accent-scrolled: rgba(144, 238, 144, 0.7);
+      --shadow-light: rgba(0, 0, 0, 0.08);
+      --shadow-medium: rgba(0, 0, 0, 0.15);
+      --shadow-dark: rgba(0, 0, 0, 0.3);
+      --border-light: rgba(255, 255, 255, 0.3);
+      --warning-color: #F77F00;
+      --warning-hover: #FFB703;
+      --danger-color: #DC143C;
+      --danger-hover: #B22222;
+      --selection-bg: rgba(255, 183, 3, 0.3);
+      --modal-bg: #FFFFFF;
+      --input-bg: #FFFFFF;
+      --border-color: #ddd;
+      --hover-bg: #f5f5f5;
+      --secondary-btn-bg: #f8f9fa;
+      --text-color: #1C1C1C;
+    }
+
+    /* Dark Mode Variables */
+    [data-theme="dark"] {
+      --bg-primary: #1a1a1a;
+      --bg-secondary: #2d2d2d;
+      --text-primary: #e0e0e0;
+      --text-secondary: #b0b0b0;
+      --text-muted: #808080;
+      --accent-primary: #4a9d6a;
+      --accent-secondary: #5fb876;
+      --accent-tertiary: rgba(74, 157, 106, 0.95);
+      --accent-scrolled: rgba(74, 157, 106, 0.8);
+      --shadow-light: rgba(255, 255, 255, 0.08);
+      --shadow-medium: rgba(255, 255, 255, 0.15);
+      --shadow-dark: rgba(0, 0, 0, 0.6);
+      --border-light: rgba(0, 0, 0, 0.3);
+      --warning-color: #ff8c42;
+      --warning-hover: #ffa663;
+      --danger-color: #ff6b6b;
+      --danger-hover: #ff5252;
+      --selection-bg: rgba(255, 183, 3, 0.2);
+      --modal-bg: #2d2d2d;
+      --input-bg: #3a3a3a;
+      --border-color: #555;
+      --hover-bg: #404040;
+      --secondary-btn-bg: #3a3a3a;
+      --text-color: #e0e0e0;
+    }
+
     * {
       margin: 0;
       padding: 0;
@@ -19,20 +77,18 @@
     }
 
     body {
-      font-family: 'Merriweather', serif;
-      background-color: #FDFCF7;
-      /* Soft off-white like book paper */
-      color: #1C1C1C;
-      /* Almost black for best readability */
+      font-family: Arial, sans-serif;
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
       min-height: 100vh;
+      transition: background-color 0.3s ease, color 0.3s ease;
     }
 
     /* Navigation Bar */
     .navbar {
-      background-color: rgba(144, 238, 144, 0.95);
-      /* Light pastel green, slightly transparent */
+      background-color: var(--accent-tertiary);
       padding: 1rem 2rem;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      box-shadow: 0 2px 8px var(--shadow-light);
       position: fixed;
       top: 0;
       left: 0;
@@ -42,8 +98,8 @@
     }
 
     .navbar.scrolled {
-      background-color: rgba(144, 238, 144, 0.7);
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+      background-color: var(--accent-scrolled);
+      box-shadow: 0 4px 16px var(--shadow-medium);
     }
 
     .nav-container {
@@ -52,11 +108,32 @@
       align-items: center;
       max-width: 1200px;
       margin: 0 auto;
+      padding: 0 2rem;
+    }
+
+    .nav-left,
+    .nav-center,
+    .nav-right {
+      flex: 1;
+      display: flex;
+      align-items: center;
+    }
+
+    .nav-left {
+      justify-content: flex-start;
+    }
+
+    .nav-center {
+      justify-content: center;
+    }
+
+    .nav-right {
+      justify-content: flex-end;
     }
 
     .logo {
       color: white;
-      font-family: 'Poppins', sans-serif;
+      font-family: Arial, sans-serif;
       font-size: 1.6rem;
       font-weight: 700;
     }
@@ -69,10 +146,10 @@
     .nav-link {
       color: white;
       text-decoration: none;
-      padding: 0.5rem 1rem;
+      padding: 1rem 1rem;
       border-radius: 5px;
       transition: all 0.3s;
-      font-family: 'Poppins', sans-serif;
+      font-family: Arial, sans-serif;
       font-weight: 400;
     }
 
@@ -80,6 +157,33 @@
       background-color: #FFB703;
       /* Soft accent golden orange */
       color: #1C1C1C;
+    }
+
+    /* Dark Mode Toggle */
+    .dark-mode-toggle {
+      background: none;
+      border: 2px solid white;
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 25px;
+      cursor: pointer;
+      font-family: Arial, sans-serif;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-left: 1rem;
+    }
+
+    .dark-mode-toggle:hover {
+      background-color: rgba(255, 255, 255, 0.2);
+      transform: translateY(-1px);
+    }
+
+    .dark-mode-toggle .icon {
+      font-size: 1rem;
     }
 
     .nav-link.active {
@@ -90,10 +194,10 @@
 
     /* Main Content */
     .main-content {
-      max-width: 1200px;
-      margin: 5rem auto 0 auto;
+      max-width: none;
+      margin: 5rem 0 0 0;
       padding: 1.6rem;
-      align-self: left;
+      width: 100%;
     }
 
     /* Page Sections */
@@ -107,11 +211,10 @@
 
     /* Skill Test Page Styles */
     .skill-test-container {
-      background-color: #E9ECEF;
-      /* Balance color for cards */
+      background-color: var(--bg-secondary);
       border-radius: 8px;
       padding: 1.6rem;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 4px 6px var(--shadow-light);
       max-width: 600px;
       margin: 0 auto;
     }
@@ -124,7 +227,7 @@
     .skill-test-header h1 {
       color: #2E8B57;
       /* Sea green for headings */
-      font-family: 'Poppins', sans-serif;
+      font-family: Arial, sans-serif;
       font-weight: 700;
       margin-bottom: 0.8rem;
     }
@@ -145,7 +248,7 @@
       margin-bottom: 1.6rem;
       color: #1C1C1C;
       /* Almost black for primary text */
-      font-family: 'Poppins', sans-serif;
+      font-family: Arial, sans-serif;
     }
 
     .options-container {
@@ -218,16 +321,14 @@
     }
 
     .btn-primary {
-      background-color: #2E8B57;
-      /* Sea green */
+      background-color: var(--accent-primary);
       color: white;
-      font-family: 'Poppins', sans-serif;
+      font-family: Arial, sans-serif;
       font-weight: 400;
     }
 
     .btn-primary:hover {
-      background-color: #F77F00;
-      /* Bold warm orange on hover */
+      background-color: var(--warning-color);
     }
 
     .btn:disabled {
@@ -253,12 +354,145 @@
     }
 
     /* Chat Page Styles */
+    .chat-layout {
+      display: flex;
+      gap: 1rem;
+      min-height: 600px;
+      margin: 0;
+      padding: 0;
+    }
+
+    .story-sidebar {
+      width: 320px;
+      background-color: var(--bg-secondary);
+      border-radius: 0 12px 12px 0;
+      padding: 1.6rem;
+      border: 2px solid var(--border-color, #ddd);
+      border-left: none;
+      box-shadow: var(--shadow-medium);
+      overflow-y: auto;
+      max-height: 80vh;
+      position: overlay;
+      top: 5rem;
+    }
+
+    .sidebar-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .sidebar-btn {
+      background-color: var(--accent-primary);
+      color: white;
+      border: none;
+      padding: 0.8rem 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 600;
+      font-family: Arial, sans-serif;
+      transition: all 0.3s;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .sidebar-btn:hover {
+      background-color: var(--accent-secondary);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .story-sidebar h3 {
+      margin: 0 0 1.5rem 0;
+      color: var(--accent-primary);
+      font-family: Arial, sans-serif;
+      font-weight: 700;
+      font-size: 1.2rem;
+      text-align: center;
+      border-bottom: 2px solid var(--accent-primary);
+      padding-bottom: 0.5rem;
+    }
+
+    .chat-main {
+      flex: 1;
+      min-width: 0;
+    }
+
     .chat-container {
       background-color: transparent;
       border-radius: 8px;
       padding: 1.6rem;
       margin-bottom: 1.6rem;
       text-align: center;
+    }
+
+    .world-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .world-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem 1rem;
+      background-color: var(--accent-tertiary);
+      border-radius: 8px;
+      margin-bottom: 0.5rem;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .world-header:hover {
+      background-color: var(--accent-secondary);
+    }
+
+    .world-name {
+      font-weight: 600;
+      color: var(--text-primary);
+      font-size: 1rem;
+    }
+
+    .world-count {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      background-color: var(--bg-primary);
+      padding: 0.2rem 0.6rem;
+      border-radius: 12px;
+    }
+
+    .world-stories {
+      margin-left: 0.5rem;
+      border-left: 2px solid var(--accent-primary);
+      padding-left: 0.5rem;
+    }
+
+    .sidebar-story-item {
+      padding: 0.6rem 0.8rem;
+      margin-bottom: 0.4rem;
+      background-color: var(--bg-primary);
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .sidebar-story-item:hover {
+      background-color: var(--hover-bg);
+      transform: translateX(3px);
+    }
+
+    .sidebar-story-title {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 0.2rem;
+    }
+
+    .sidebar-story-preview {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      line-height: 1.2;
     }
 
     .start-story-btn {
@@ -273,7 +507,7 @@
       margin-bottom: 1.6rem;
       margin-top: 0.8rem;
       transition: all 0.3s;
-      font-family: 'Poppins', sans-serif;
+      font-family: Arial, sans-serif;
       font-weight: 700;
     }
 
@@ -305,11 +539,11 @@
       margin-bottom: 1.6rem;
       font-size: 1rem;
       line-height: 1.6;
-      color: #1C1C1C;
-      /* Almost black for readability */
+      color: var(--text-primary);
       max-width: 800px;
       margin-left: auto;
       margin-right: auto;
+      transition: color 0.3s ease;
     }
 
     .text-display.slide-up {
@@ -324,67 +558,74 @@
       opacity: 1;
     }
 
-    .previous-stories {
-      background-color: transparent;
-      border-radius: 0;
-      padding: 1.6rem 0;
-      max-width: 800px;
-      margin: 0 auto;
-    }
-
-    .previous-stories h3 {
-      margin-bottom: 1.6rem;
-      color: #2E8B57;
-      /* Sea green for headings */
-      font-family: 'Poppins', sans-serif;
-      font-weight: 700;
-    }
-
-    .story-list {
-      list-style: none;
-    }
-
-    .story-item {
-      background-color: white;
-      border: 1px solid #E9ECEF;
-      border-radius: 8px;
-      padding: 1.6rem;
-      margin-bottom: 1.6rem;
-      cursor: pointer;
-      transition: all 0.3s;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
-
-    .story-item:hover {
-      background-color: #FFB703;
-      /* Soft golden orange on hover */
-      border-color: #2E8B57;
-      /* Sea green border on hover */
-      transform: translateY(-2px);
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-    }
-
-    .story-title {
-      font-weight: 700;
+    /* Markdown content styling */
+    .story-content h1,
+    .story-content h2,
+    .story-content h3 {
+      color: var(--accent-primary);
+      margin-top: 1.5rem;
       margin-bottom: 0.8rem;
-      color: #2E8B57;
-      /* Sea green for story titles */
-      font-family: 'Poppins', sans-serif;
     }
 
-    .story-preview {
-      color: #5A5A5A;
-      /* Softer gray for secondary text */
-      font-size: 0.9rem;
+    .story-content p {
+      margin-bottom: 1rem;
     }
+
+    .story-content strong {
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .story-content em {
+      font-style: italic;
+    }
+
+    .story-content ul,
+    .story-content ol {
+      margin: 1rem 0;
+      padding-left: 2rem;
+    }
+
+    .story-content blockquote {
+      border-left: 4px solid var(--accent-primary);
+      padding-left: 1rem;
+      margin: 1rem 0;
+      font-style: italic;
+      color: var(--text-secondary);
+    }
+
+    .story-content code {
+      background-color: var(--bg-primary);
+      padding: 0.2rem 0.4rem;
+      border-radius: 4px;
+      font-family: Arial, sans-serif;
+    }
+
+    .continue-section {
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 2px solid var(--border-color);
+      text-align: center;
+    }
+
+    .empty-state {
+      text-align: center;
+      color: var(--text-muted);
+      font-style: italic;
+      padding: 4rem 2rem;
+      font-size: 1.1rem;
+    }
+
+
+
+
 
     /* Profile Page Styles */
     .profile-container {
-      background-color: #E9ECEF;
-      /* Balance color for cards */
+      background-color: var(--bg-secondary);
       border-radius: 8px;
       padding: 1.6rem;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 4px 6px var(--shadow-light);
       text-align: center;
     }
 
@@ -408,7 +649,7 @@
       color: #2E8B57;
       /* Sea green for headings */
       margin-bottom: 1.6rem;
-      font-family: 'Poppins', sans-serif;
+      font-family: Arial, sans-serif;
       font-weight: 700;
     }
 
@@ -429,7 +670,7 @@
       font-weight: 700;
       color: #2E8B57;
       /* Sea green for numbers */
-      font-family: 'Poppins', sans-serif;
+      font-family: Arial, sans-serif;
     }
 
     .stat-label {
@@ -450,7 +691,7 @@
       margin-top: 1.6rem;
       transition: all 0.3s;
       font-weight: 700;
-      font-family: 'Poppins', sans-serif;
+      font-family: Arial, sans-serif;
     }
 
     .skill-test-btn:hover {
@@ -471,7 +712,7 @@
       margin-top: 1.6rem;
       transition: all 0.3s;
       font-weight: 700;
-      font-family: 'Poppins', sans-serif;
+      font-family: Arial, sans-serif;
     }
 
     .clear-worlds-btn:hover {
@@ -480,19 +721,146 @@
       transform: translateY(-2px);
     }
 
+    /* Modal Styles */
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-content {
+      background-color: var(--modal-bg);
+      border-radius: 12px;
+      width: 90%;
+      max-width: 500px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      border: 2px solid var(--border-color);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .modal-header h2 {
+      margin: 0;
+      color: var(--text-color);
+      font-size: 1.5em;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: var(--text-color);
+      padding: 0;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+    }
+
+    .modal-close:hover {
+      background-color: var(--hover-bg);
+    }
+
+    .modal-body {
+      padding: 20px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--text-color);
+      font-weight: bold;
+    }
+
+    .form-group input,
+    .form-group textarea {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid var(--border-color);
+      border-radius: 8px;
+      font-size: 14px;
+      background-color: var(--input-bg);
+      color: var(--text-color);
+      box-sizing: border-box;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: #4CAF50;
+      box-shadow: 0 0 5px rgba(76, 175, 80, 0.3);
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-top: 20px;
+    }
+
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: bold;
+      transition: background-color 0.2s;
+    }
+
+    .btn-primary {
+      background-color: #4CAF50;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background-color: #45a049;
+    }
+
+    .btn-secondary {
+      background-color: var(--secondary-btn-bg);
+      color: var(--text-color);
+      border: 2px solid var(--border-color);
+    }
+
+    .btn-secondary:hover {
+      background-color: var(--hover-bg);
+    }
+
     /* Translation Tooltip Styles */
     .translation-tooltip {
       position: absolute;
-      background-color: rgba(0, 0, 0, 0.9);
-      color: white;
+      background-color: var(--bg-secondary);
+      color: var(--text-primary);
+      border: 2px solid var(--accent-primary);
       padding: 8px 12px;
       border-radius: 6px;
       font-size: 0.9rem;
-      font-family: 'Poppins', sans-serif;
+      font-family: Arial, sans-serif;
       max-width: 300px;
       word-wrap: break-word;
       z-index: 1000;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 4px 12px var(--shadow-dark);
       opacity: 0;
       transform: translateY(-10px);
       transition: opacity 0.3s, transform 0.3s;
@@ -512,7 +880,7 @@
       margin-left: -5px;
       border-width: 5px;
       border-style: solid;
-      border-color: rgba(0, 0, 0, 0.9) transparent transparent transparent;
+      border-color: var(--accent-primary) transparent transparent transparent;
     }
 
     .translation-original {
@@ -527,13 +895,13 @@
     }
 
     .translation-loading {
-      color: #FFB703;
+      color: var(--warning-color);
       font-style: italic;
     }
 
     /* Highlight selected text */
     .text-selected {
-      background-color: rgba(255, 183, 3, 0.3);
+      background-color: var(--selection-bg);
       border-radius: 2px;
     }
 
@@ -541,7 +909,7 @@
     .felix-icon {
       position: fixed;
       bottom: 1.6rem;
-      left: 1.6rem;
+      right: 1.6rem;
       width: 4.8rem;
       height: 4.8rem;
       background-image: url('static/felixthefox.png');
@@ -551,7 +919,7 @@
       border: 2px solid #F77F00;
       border-radius: 50%;
       cursor: pointer;
-      transition: left 0.5s cubic-bezier(0.4, 0, 0.2, 1), width 0.5s cubic-bezier(0.4, 0, 0.2, 1), border-radius 0.5s, background-color 0.5s, background-image 0.5s, box-shadow 0.5s;
+      transition: right 0.5s cubic-bezier(0.4, 0, 0.2, 1), width 0.5s cubic-bezier(0.4, 0, 0.2, 1), border-radius 0.5s, background-color 0.5s, background-image 0.5s, box-shadow 0.5s;
       z-index: 1000;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     }
@@ -589,7 +957,7 @@
       border-radius: 2.4rem;
       padding: 0 2.4rem;
       font-size: 1rem;
-      font-family: 'Merriweather', serif;
+      font-family: Arial, sans-serif;
       color: #1C1C1C;
       outline: none;
       box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
@@ -629,6 +997,23 @@
         gap: 1.6rem;
       }
 
+      /* Mobile sidebar layout */
+      .chat-layout {
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .story-sidebar {
+        width: 100%;
+        max-height: 40vh;
+        order: 2;
+        /* Put sidebar below main content on mobile */
+      }
+
+      .chat-main {
+        order: 1;
+      }
+
       .felix-icon {
         width: 4rem;
         height: 4rem;
@@ -661,10 +1046,20 @@
   <!-- Navigation Bar -->
   <nav class="navbar">
     <div class="nav-container">
-      <div class="logo">Duolingo2.0</div>
-      <div class="nav-links">
-        <a href="#" class="nav-link active" onclick="showPage('chat')">Chat</a>
-        <a href="#" class="nav-link" onclick="showPage('profile')">Profile</a>
+      <div class="nav-left">
+        <div class="logo">Duolingo 2.0</div>
+      </div>
+      <div class="nav-center">
+        <div class="nav-links">
+          <a href="#" class="nav-link active" onclick="showPage('chat')">Chat</a>
+          <a href="#" class="nav-link" onclick="showPage('profile')">Profile</a>
+        </div>
+      </div>
+      <div class="nav-right">
+        <button class="dark-mode-toggle" onclick="toggleDarkMode()" id="darkModeBtn">
+          <span class="icon">☀️</span>
+          <span class="text">Light</span>
+        </button>
       </div>
     </div>
   </nav>
@@ -674,20 +1069,33 @@
   <div class="main-content">
     <!-- Chat Page -->
     <div id="chat" class="page active">
-      <div class="chat-container">
-        <!-- <h1 style="color: #2E8B57; font-family: 'Poppins', sans-serif; font-weight: 700; margin-bottom: 360 px;">Story Generator</h1> -->
-        <button class="start-story-btn" onclick="handleStoryButton(0, 'new')">New Story</button>
-        <button class="start-story-btn" onclick="handleStoryButton(1, -1)" style="margin-left: 1rem;">Continue</button>
+      <div class="chat-layout">
+        <!-- Left Sidebar for Stories -->
+        <div class="story-sidebar">
+          <div class="sidebar-actions">
+            <button class="sidebar-btn" onclick="handleStoryButton(0, 'new')" id="newStoryBtn">New Story</button>
+            <button class="sidebar-btn" onclick="showCreateWorldForm()" id="createWorldBtn">Create World</button>
+          </div>
 
-        <div class="text-display" id="textDisplay">
-          <p> </p>
+          <h3>Stories by World</h3>
+          <div class="world-groups" id="worldGroups">
+            <!-- World groups will be populated here -->
+          </div>
         </div>
 
-        <div class="previous-stories">
-          <h3>Previous Stories</h3>
-          <ul class="story-list" id="storyList">
+        <!-- Main Chat Area -->
+        <div class="chat-main">
+          <div class="chat-container">
+            <div class="text-display" id="textDisplay">
+              <div class="empty-state">
+                <p>Select a story from the sidebar or create a new one to get started!</p>
+              </div>
+            </div>
 
-          </ul>
+            <div class="continue-section" id="continueSection" style="display: none;">
+              <button class="start-story-btn" onclick="handleStoryButton(1, -1)" id="continueBtn">Continue</button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -700,7 +1108,7 @@
         </div>
         <div class="profile-info">
           <h2>User Profile</h2>
-          <p>Welcome to Duolingo2.0!</p>
+          <p>Welcome to Duolingo 2.0!</p>
           <button class="skill-test-btn" onclick="showSkillTest()">Take Skill Test</button>
           <button class="clear-worlds-btn" onclick="clearAllWorlds()">Clear All Worlds</button>
         </div>
@@ -748,6 +1156,42 @@
               <input type="radio" name="language" value="german" id="german">
               <label for="german">German</label>
             </div>
+            <div class="option" onclick="selectOption(this, 'korean')">
+              <input type="radio" name="language" value="korean" id="korean">
+              <label for="korean">Korean</label>
+            </div>
+            <div class="option" onclick="selectOption(this, 'chinese (simplified)')">
+              <input type="radio" name="language" value="chinese (simplified)" id="chinese (simplified)">
+              <label for="chinese (simplified)">Chinese (Simplified)</label>
+            </div>
+            <div class="option" onclick="selectOption(this, 'spanish')">
+              <input type="radio" name="language" value="spanish" id="spanish">
+              <label for="spanish">Spanish</label>
+            </div>
+            <div class="option" onclick="selectOption(this, 'portuguese')">
+              <input type="radio" name="language" value="portuguese" id="portuguese">
+              <label for="portuguese">Portuguese</label>
+            </div>
+            <div class="option" onclick="selectOption(this, 'italian')">
+              <input type="radio" name="language" value="italian" id="italian">
+              <label for="italian">Italian</label>
+            </div>
+            <div class="option" onclick="selectOption(this, 'japanese')">
+              <input type="radio" name="language" value="japanese" id="japanese">
+              <label for="japanese">Japanese</label>
+            </div>
+            <div class="option" onclick="selectOption(this, 'russian')">
+              <input type="radio" name="language" value="russian" id="russian">
+              <label for="russian">Russian</label>
+            </div>
+            <div class="option" onclick="selectOption(this, 'arabic')">
+              <input type="radio" name="language" value="arabic" id="arabic">
+              <label for="arabic">Arabic</label>
+            </div>
+            <div class="option" onclick="selectOption(this, 'hindi')">
+              <input type="radio" name="language" value="hindi" id="hindi">
+              <label for="hindi">Hindi</label>
+            </div>
           </div>
         </div>
 
@@ -755,6 +1199,35 @@
           <button class="btn btn-secondary" onclick="goBackToProfile()">Back to Profile</button>
           <button class="btn btn-primary" id="nextBtn" onclick="nextQuestion()" disabled>Next Question</button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create World Modal -->
+  <div id="createWorldModal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Create New World</h2>
+        <button class="modal-close" onclick="hideCreateWorldForm()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="createWorldForm" onsubmit="createNewWorld(event)">
+          <div class="form-group">
+            <label for="worldName">World Name:</label>
+            <input type="text" id="worldName" name="worldName" required
+              placeholder="Enter world name (e.g., 'adventure-realm')" pattern="[a-zA-Z0-9_-]+"
+              title="Only letters, numbers, hyphens, and underscores allowed">
+          </div>
+          <div class="form-group">
+            <label for="worldDescription">World Description:</label>
+            <textarea id="worldDescription" name="worldDescription" required
+              placeholder="Describe this world's setting, characters, and theme..." rows="4"></textarea>
+          </div>
+          <div class="form-actions">
+            <button type="button" class="btn btn-secondary" onclick="hideCreateWorldForm()">Cancel</button>
+            <button type="submit" class="btn btn-primary">Create World</button>
+          </div>
+        </form>
       </div>
     </div>
   </div>
@@ -767,6 +1240,8 @@
   <script>
     let lastStoryLanguage = 'French';
     let lastStoryFormat = '0'; // Default to play script
+    let currentStoryIndex = 0; // Track the current story segment index
+    let currentWorldFile = 'data/world0.json'; // Track the current world file
     // Modern Navbar Scroll Effect
     window.addEventListener('scroll', function () {
       const navbar = document.querySelector('.navbar');
@@ -778,123 +1253,139 @@
     });
 
 
-    // Felix Icon Logic
-    function newStoryFelix(callback) {
-      console.log('newStoryFelix called');
+    // Function to get available worlds for selection
+    async function getAvailableWorlds() {
       try {
-      } catch (err) {
-        console.error('Error in newStoryFelix:', err);
-      }
-      // Always define buttons inside this function
-      const buttons = document.querySelectorAll('.start-story-btn');
-      // Remove any previous format select, language select or Felix input
-      const oldFormatSelect = document.getElementById('formatSelect');
-      if (oldFormatSelect) oldFormatSelect.remove();
-      const oldLangSelect = document.getElementById('languageSelect');
-      if (oldLangSelect) oldLangSelect.remove();
-      const oldFelixInput = document.getElementById('felixStoryInput');
-      if (oldFelixInput) oldFelixInput.remove();
-
-      // Hide Felix icon when story creation input appears
-      const felixIcon = document.getElementById('felixIcon');
-      if (felixIcon) felixIcon.style.display = 'none';
-      // Do not move Continue button yet; keep it next to New Story until Enter is pressed
-      const continueBtn = buttons[1];
-      if (continueBtn) {
-        continueBtn.textContent = 'Continue Story';
-        continueBtn.style.display = 'inline-block';
-        continueBtn.classList.remove('move-out');
-        continueBtn.classList.remove('move-in');
-        // Place it right after New Story button ONLY if not already there
-        const btnParent = buttons[0].parentNode;
-        if (btnParent.children[1] !== continueBtn) {
-          btnParent.insertBefore(continueBtn, buttons[0].nextSibling);
+        const response = await fetch('/api/get_all_stories');
+        const data = await response.json();
+        if (data.success) {
+          return data.worlds.map(world => ({
+            name: world.name,
+            description: world.description
+          }));
         }
+        return [];
+      } catch (error) {
+        console.error('Error fetching worlds:', error);
+        return [];
       }
-      // Insert format and language selection below New Story button (modern styling)
-      let formatSelect = document.createElement('div');
-      formatSelect.id = 'formatSelect';
-      formatSelect.style.margin = '1.5rem auto 0.5rem auto';
-      formatSelect.style.textAlign = 'center';
-      formatSelect.innerHTML = `
-                <label for="mc-format" style="font-weight:600; font-size:1.1rem; margin-right:0.7rem;">Story Format:</label>
-                <select id="mc-format" style="padding:0.7rem 2.2rem; border-radius:12px; border:2px solid #2E8B57; font-size:1.1rem; background:#FDFCF7; color:#2E8B57; box-shadow:0 2px 8px rgba(0,0,0,0.07); outline:none;">
-                    <option value="0">Play Script</option>
-                    <option value="1">Short Story</option>
-                </select>
-            `;
-      buttons[0].parentNode.insertBefore(formatSelect, buttons[1]);
+    }
 
-      let langSelect = document.createElement('div');
-      langSelect.id = 'languageSelect';
-      langSelect.style.margin = '1rem auto 0.5rem auto';
-      langSelect.style.textAlign = 'center';
-      langSelect.innerHTML = `
-                <label for="mc-language" style="font-weight:600; font-size:1.1rem; margin-right:0.7rem;">Choose a language:</label>
-                <select id="mc-language" style="padding:0.7rem 2.2rem; border-radius:12px; border:2px solid #2E8B57; font-size:1.1rem; background:#FDFCF7; color:#2E8B57; box-shadow:0 2px 8px rgba(0,0,0,0.07); outline:none;">
-                    <option value="French">French</option>
-                    <option value="English">English</option>
-                    <option value="German">German</option>
-                </select>
-            `;
-      formatSelect.parentNode.insertBefore(langSelect, formatSelect.nextSibling);
 
-      // Animate Felix from bottom and expand
-      let felixInput = document.createElement('div');
-      felixInput.id = 'felixStoryInput';
-      felixInput.style.margin = '2rem auto 0.5rem auto';
-      felixInput.style.display = 'flex';
-      felixInput.style.justifyContent = 'center';
-      felixInput.innerHTML = `
-                <div id="felixExpand" style="display:flex; align-items:center; gap:1.2rem; background:white; border-radius:2.4rem; box-shadow:0 4px 16px rgba(0,0,0,0.13); border:2px solid #2E8B57; padding:0.7rem 2rem; position:relative; animation: felixUp 0.5s cubic-bezier(0.4,0,0.2,1);">
-                    <img src="static/felixthefox.png" alt="Felix the Fox" style="width:56px; height:56px; border-radius:50%; border:2px solid #F77F00; box-shadow:0 2px 8px rgba(0,0,0,0.2);">
-                    <input type="text" id="storyPromptInput" placeholder="describe your story and press Enter" style="padding:0.7rem 1.2rem; border-radius:2rem; border:2px solid #2E8B57; font-size:1.1rem; font-family:'Merriweather',serif; width:340px; margin-right:1.2rem;">
-                </div>
-                <style>
-                @keyframes felixUp { from { transform: translateY(120px) scale(0.7); opacity:0; } to { transform: translateY(0) scale(1); opacity:1; } }
-                @keyframes felixDown { from { transform: translateY(0) scale(1); opacity:1; } to { transform: translateY(40px) scale(0.7); opacity:0; } }
-                </style>
-            `;
-      langSelect.parentNode.insertBefore(felixInput, langSelect.nextSibling);
 
-      // NSF input triggers story generation on Enter
-      felixInput.querySelector('#storyPromptInput').addEventListener('keydown', function (e) {
-        if (e.key === 'Enter') {
-          const prompt = felixInput.querySelector('#storyPromptInput').value.trim();
-          const language = document.getElementById('mc-language').value;
-          const format = document.getElementById('mc-format').value;
-          // Animate NSF shrink and slide down
-          const felixExpand = felixInput.querySelector('#felixExpand');
-          if (felixExpand) {
-            felixExpand.style.animation = 'felixDown 0.45s cubic-bezier(0.4,0,0.2,1)';
+    function showNewStoryForm() {
+      const textDisplay = document.getElementById('textDisplay');
+      const continueSection = document.getElementById('continueSection');
+
+      // Hide continue section
+      continueSection.style.display = 'none';
+
+      // Create inline form similar to create world screen
+      textDisplay.innerHTML = `
+        <div class="create-story-form">
+          <h2 style="color: var(--accent-primary); text-align: center; margin-bottom: 2rem;">Create New Story</h2>
+          
+          <div style="margin: 1.5rem auto 0.5rem auto; text-align: center;">
+            <label for="storyWorldInput" style="font-weight:600; font-size:1.1rem; margin-right:0.7rem;">Choose World:</label>
+            <select id="storyWorldInput" style="padding:0.7rem 1.2rem; border-radius:12px; border:2px solid #2E8B57; font-size:1.1rem; background:var(--bg-primary); color:var(--text-primary); box-shadow:0 2px 8px rgba(0,0,0,0.07); outline:none; width: 320px; margin-top: 0.5rem;">
+              <option value="">Loading worlds...</option>
+            </select>
+          </div>
+          
+          <div style="margin: 1rem auto 0.5rem auto; text-align: center;">
+            <label for="storyFormatInput" style="font-weight:600; font-size:1.1rem; margin-right:0.7rem;">Story Format:</label>
+            <select id="storyFormatInput" style="padding:0.7rem 1.2rem; border-radius:12px; border:2px solid #2E8B57; font-size:1.1rem; background:var(--bg-primary); color:var(--text-primary); box-shadow:0 2px 8px rgba(0,0,0,0.07); outline:none; width: 320px; margin-top: 0.5rem;">
+              <option value="0">Play Script</option>
+              <option value="1">Short Story</option>
+            </select>
+          </div>
+          
+          <div style="margin: 1rem auto 0.5rem auto; text-align: center;">
+            <label for="storyLanguageInput" style="font-weight:600; font-size:1.1rem; margin-right:0.7rem;">Language:</label>
+            <select id="storyLanguageInput" style="padding:0.7rem 1.2rem; border-radius:12px; border:2px solid #2E8B57; font-size:1.1rem; background:var(--bg-primary); color:var(--text-primary); box-shadow:0 2px 8px rgba(0,0,0,0.07); outline:none; width: 320px; margin-top: 0.5rem;">
+              <option value="French">French</option>
+              <option value="English">English</option>
+              <option value="German">German</option>
+              <option value="Korean">Korean</option>
+              <option value="Chinese (Simplified)">Chinese (Simplified)</option>
+              <option value="Spanish">Spanish</option>
+              <option value="Portuguese">Portuguese</option>
+              <option value="Italian">Italian</option>
+              <option value="Japanese">Japanese</option>
+              <option value="Russian">Russian</option>
+              <option value="Arabic">Arabic</option>
+              <option value="Hindi">Hindi</option>
+            </select>
+          </div>
+          
+          <div style="margin: 1rem auto 0.5rem auto; text-align: center;">
+            <label for="storyPromptInput" style="font-weight:600; font-size:1.1rem; margin-right:0.7rem;">Story Prompt:</label>
+            <textarea id="storyPromptInput" placeholder="Describe your story idea..." 
+                      style="padding:0.7rem 1.2rem; border-radius:12px; border:2px solid #2E8B57; font-size:1.1rem; background:var(--bg-primary); color:var(--text-primary); box-shadow:0 2px 8px rgba(0,0,0,0.07); outline:none; width: 320px; height: 100px; margin-top: 0.5rem; resize: vertical; font-family: inherit;"
+                      rows="4"></textarea>
+          </div>
+          
+          <div style="margin: 2rem auto; text-align: center; display: flex; gap: 1rem; justify-content: center;">
+            <button onclick="cancelNewStory()" style="padding:0.8rem 2rem; border-radius:8px; border:2px solid var(--border-color); background:var(--bg-secondary); color:var(--text-primary); cursor:pointer; font-size:1rem; font-weight:600;">Cancel</button>
+            <button onclick="submitNewStory()" style="padding:0.8rem 2rem; border-radius:8px; border:none; background:var(--accent-primary); color:white; cursor:pointer; font-size:1rem; font-weight:600;">Create Story</button>
+          </div>
+        </div>
+      `;
+
+      // Load available worlds and populate dropdown
+      getAvailableWorlds().then(worlds => {
+        const worldDropdown = document.getElementById('storyWorldInput');
+        if (worldDropdown) {
+          worldDropdown.innerHTML = '';
+          if (worlds.length === 0) {
+            worldDropdown.innerHTML = '<option value="">No worlds available - Create one first!</option>';
+          } else {
+            worlds.forEach(world => {
+              const option = document.createElement('option');
+              option.value = world.name;
+              option.textContent = `${world.name} - ${world.description}`;
+              worldDropdown.appendChild(option);
+            });
           }
-          // Remove NSF and dropdown from UI after animation
-          setTimeout(() => {
-            felixInput.remove();
-            langSelect.remove();
-            formatSelect.remove();
-            // Move Continue button below previous stories after NSF disappears (after Enter)
-            if (continueBtn) {
-              continueBtn.classList.add('move-out');
-              setTimeout(() => {
-                continueBtn.classList.remove('move-out');
-                const previousStories = document.querySelector('.previous-stories');
-                if (previousStories) {
-                  previousStories.parentNode.insertBefore(continueBtn, previousStories);
-                }
-                setTimeout(() => {
-                  continueBtn.classList.add('move-in');
-                }, 10);
-              }, 300);
-            }
-            // Call the callback with user input, language, and format
-            if (typeof callback === 'function') {
-              callback(prompt, language, format);
-            }
-          }, 450);
         }
       });
+
+      // Focus on the prompt input
+      setTimeout(() => {
+        document.getElementById('storyPromptInput').focus();
+      }, 100);
     }
+
+    function cancelNewStory() {
+      const textDisplay = document.getElementById('textDisplay');
+      textDisplay.innerHTML = `
+        <div class="empty-state">
+          <p>Select a story from the sidebar or create a new one to get started!</p>
+        </div>
+      `;
+    }
+
+    function submitNewStory() {
+      const worldName = document.getElementById('storyWorldInput').value.trim();
+      const format = document.getElementById('storyFormatInput').value;
+      const language = document.getElementById('storyLanguageInput').value;
+      const prompt = document.getElementById('storyPromptInput').value.trim();
+
+      if (!worldName) {
+        alert('Please select a world first!');
+        return;
+      }
+
+      if (!prompt) {
+        alert('Please enter a story prompt.');
+        return;
+      }
+
+      // Call handleStoryButton with the form data
+      handleStoryButton(0, { prompt, language, format, worldName });
+    }
+
+
 
     // Page Navigation
     function showPage(pageId) {
@@ -931,77 +1422,16 @@
       const buttons = document.querySelectorAll('.start-story-btn');
       buttons.forEach(btn => btn.classList.remove('move-in'));
 
-      // If new story, run newStoryFelix and wait for user input
+      // If new story, show the inline form
       if (content_index === 'new') {
-        newStoryFelix(function (prompt, language, format) {
-          // Now run the main story logic with collected variables
-          textDisplay.innerHTML = '<p>Generating your story... Please wait!</p>';
-          textDisplay.classList.remove('slide-in');
-          textDisplay.classList.remove('slide-up');
-          fetch('/api/generate_story', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              topic: prompt || 'adventure',
-              language: language,
-              format: format || '0',
-              world_file: 'data/world0.json',
-              current_content_index: content_index
-            })
-          })
-            .then(response => response.text())
-            .then(data => {
-              lastStoryLanguage = language; // Save the language for future continues
-              console.log('Generated story:', data);
-              textDisplay.classList.add('slide-up');
-              setTimeout(() => {
-                textDisplay.innerHTML = `<span>${data}</span>`;
-                textDisplay.classList.remove('slide-up');
-                textDisplay.classList.add('slide-in');
-              }, 400);
-              addToPreviousStories(data);
-              const continueBtn = buttons[1];
-              if (continueBtn) {
-                continueBtn.classList.add('move-out');
-                setTimeout(() => {
-                  continueBtn.classList.remove('move-out');
-                  const previousStories = document.querySelector('.previous-stories');
-                  if (previousStories) {
-                    previousStories.parentNode.insertBefore(continueBtn, previousStories);
-                  }
-                  setTimeout(() => {
-                    continueBtn.classList.add('move-in');
-                  }, 10);
-                }, 300);
-              }
-            })
-            .catch(async error => {
-              let errorMsg = 'Error generating story:';
-              if (error instanceof Response) {
-                try {
-                  const errJson = await error.json();
-                  errorMsg += ' ' + (errJson.error || JSON.stringify(errJson));
-                } catch (e) {
-                  try {
-                    const errText = await error.text();
-                    errorMsg += ' ' + errText;
-                  } catch (e2) {
-                    errorMsg += ' ' + error.statusText;
-                  }
-                }
-              } else if (error && error.message) {
-                errorMsg += ' ' + error.message;
-              } else {
-                errorMsg += ' ' + error;
-              }
-              console.error(errorMsg);
-              textDisplay.innerHTML = `<p>${errorMsg}</p>`;
-            });
-        });
-      } else {
-        // Continue logic: run story generation directly
+        showNewStoryForm();
+        return;
+      }
+
+      // Continue story or handle completion callback from form
+      if (typeof content_index === 'object' && content_index.prompt) {
+        const { prompt, language, format, worldName } = content_index;
+        // Now run the main story logic with collected variables
         textDisplay.innerHTML = '<p>Generating your story... Please wait!</p>';
         textDisplay.classList.remove('slide-in');
         textDisplay.classList.remove('slide-up');
@@ -1011,10 +1441,102 @@
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
+            topic: prompt || 'adventure',
+            language: language,
+            format: format || '0',
+            world_file: `data/${worldName}.json`,
+            current_content_idx: 'new'
+          })
+        })
+          .then(response => response.text())
+          .then(async (data) => {
+            lastStoryLanguage = language; // Save the language for future continues
+            lastStoryFormat = format; // Save the format for future continues
+            currentWorldFile = `data/${worldName}.json`; // Save the world file
+
+            // Get current world stories count to set proper index
+            try {
+              const response = await fetch('/api/get_all_stories');
+              const storiesData = await response.json();
+              if (storiesData.success) {
+                const currentWorld = storiesData.worlds.find(world => world.name === worldName);
+                if (currentWorld && currentWorld.stories) {
+                  currentStoryIndex = Math.max(0, currentWorld.stories.length - 1);
+                } else {
+                  currentStoryIndex = 0;
+                }
+              } else {
+                currentStoryIndex = 0;
+              }
+            } catch (error) {
+              console.error('Error getting world stories count:', error);
+              currentStoryIndex = 0;
+            }
+
+            console.log('Generated story:', data);
+            textDisplay.classList.add('slide-up');
+            setTimeout(() => {
+              textDisplay.innerHTML = `<div class="story-content">${marked.parse(data)}</div>`;
+              textDisplay.classList.remove('slide-up');
+              textDisplay.classList.add('slide-in');
+            }, 400);
+            // Show continue section when content is displayed
+            const continueSection = document.getElementById('continueSection');
+            continueSection.style.display = 'block';
+            addToPreviousStories(data);
+          })
+          .catch(async error => {
+            let errorMsg = 'Error generating story:';
+            if (error instanceof Response) {
+              try {
+                const errJson = await error.json();
+                errorMsg += ' ' + (errJson.error || JSON.stringify(errJson));
+              } catch (e) {
+                try {
+                  const errText = await error.text();
+                  errorMsg += ' ' + errText;
+                } catch (e2) {
+                  errorMsg += ' ' + error.statusText;
+                }
+              }
+            } else if (error && error.message) {
+              errorMsg += ' ' + error.message;
+            } else {
+              errorMsg += ' ' + error;
+            }
+            console.error(errorMsg);
+            textDisplay.innerHTML = `<p>${errorMsg}</p>`;
+          });
+      } else {
+        // Continue logic: run story generation directly
+        // Check if there's existing content, and if so, add loading indicator differently
+        const existingStoryContent = textDisplay.querySelector('.story-content');
+        if (existingStoryContent) {
+          // Add a loading indicator within the existing content
+          const loadingEl = document.createElement('p');
+          loadingEl.id = 'story-loading';
+          loadingEl.textContent = 'Generating more story... Please wait!';
+          loadingEl.style.fontStyle = 'italic';
+          loadingEl.style.color = 'var(--text-muted)';
+          existingStoryContent.appendChild(loadingEl);
+        } else {
+          // No existing content, show normal loading message
+          textDisplay.innerHTML = '<p>Generating your story... Please wait!</p>';
+        }
+        textDisplay.classList.remove('slide-in');
+        textDisplay.classList.remove('slide-up');
+        console.log("Current Story Index:", currentStoryIndex);
+        fetch('/api/generate_story', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
             topic: 'adventure', // or previous topic
             language: lastStoryLanguage, // use last story's language
-            world_file: 'data/world0.json',
-            current_content_index: content_index
+            format: lastStoryFormat, // use last story's format
+            world_file: currentWorldFile, // use current world file
+            current_content_idx: currentStoryIndex
           })
         })
           .then(response => response.text())
@@ -1022,10 +1544,28 @@
             console.log('Generated story:', data);
             textDisplay.classList.add('slide-up');
             setTimeout(() => {
-              textDisplay.innerHTML = `<span>${data}</span>`;
+              // Remove loading indicator if it exists
+              const loadingEl = document.getElementById('story-loading');
+              if (loadingEl) {
+                loadingEl.remove();
+              }
+
+              // Check if there's existing story content to append to
+              const existingStoryContent = textDisplay.querySelector('.story-content');
+              if (existingStoryContent) {
+                // Append new content to existing story
+                const newContent = marked.parse(data);
+                existingStoryContent.innerHTML += newContent;
+              } else {
+                // No existing content, create new story content
+                textDisplay.innerHTML = `<div class="story-content">${marked.parse(data)}</div>`;
+              }
               textDisplay.classList.remove('slide-up');
               textDisplay.classList.add('slide-in');
             }, 400);
+            // Show continue section when content is displayed
+            const continueSection = document.getElementById('continueSection');
+            continueSection.style.display = 'block';
             addToPreviousStories(data);
             const continueBtn = buttons[1];
             if (continueBtn) {
@@ -1062,12 +1602,28 @@
               errorMsg += ' ' + error;
             }
             console.error(errorMsg);
-            textDisplay.innerHTML = `<p>${errorMsg}</p>`;
+            // Remove loading indicator if it exists
+            const loadingEl = document.getElementById('story-loading');
+            if (loadingEl) {
+              loadingEl.remove();
+            }
+            // For continue errors, append error message instead of replacing content
+            const existingStoryContent = textDisplay.querySelector('.story-content');
+            if (existingStoryContent) {
+              const errorEl = document.createElement('p');
+              errorEl.style.color = 'var(--error-color, #ff6b6b)';
+              errorEl.textContent = errorMsg;
+              existingStoryContent.appendChild(errorEl);
+            } else {
+              textDisplay.innerHTML = `<p>${errorMsg}</p>`;
+            }
           });
       }
 
-      // Clear previous story text
-      textDisplay.innerHTML = '';
+      // Only clear previous story text for new stories, not continues
+      if (content_index === 'new' || (typeof content_index === 'object' && content_index.prompt)) {
+        textDisplay.innerHTML = '';
+      }
 
       // All felixInput UI logic is handled inside newStoryFelix
     }
@@ -1091,31 +1647,11 @@
     }
 
     function addToPreviousStories(story) {
-      const storyList = document.getElementById('storyList');
-      const storyItem = document.createElement('li');
-      storyItem.className = 'story-item';
-      storyItem.innerHTML = `
-                <div style="display: flex; align-items: center; justify-content: space-between;">
-                    <img src="static/unfilled_heart.png" class="heart-icon" style="width: 28px; height: 28px; cursor: pointer; margin-right: 1rem;" alt="Heart">
-                    <div style="display: flex; flex-direction: column; align-items: center; flex: 1;">
-                        <div class="story-title" style="text-align: center; width: 100%;">Story ${storyList.children.length + 1}</div>
-                        <div class="story-preview" style="text-align: center; width: 100%;">${story.substring(0, 100)}...</div>
-                    </div>
-                    <img src="static/trash.png" class="trash-icon" style="width: 28px; height: 28px; cursor: pointer; margin-left: 1rem;" alt="Trash">
-                </div>
-            `;
-      storyItem.querySelector('.trash-icon').onclick = (e) => {
-        e.stopPropagation();
-        storyItem.remove();
-      };
-      storyItem.querySelector('.heart-icon').onclick = (e) => {
-        e.stopPropagation();
-        // You can add heart functionality here later
-      };
-      storyItem.onclick = () => {
-        document.getElementById('textDisplay').innerHTML = `<p>${story}</p>`;
-      };
-      storyList.appendChild(storyItem);
+      // Refresh the sidebar to show the newly created story
+      // The story should already be saved to the world file by the backend
+      setTimeout(() => {
+        loadAllStories();
+      }, 500); // Small delay to ensure backend has saved the story
     }
 
     // Skill Test Functions
@@ -1160,6 +1696,8 @@
 
         if (result.success) {
           alert(`Success! ${result.message}\nCleared worlds: ${result.cleared_worlds.join(', ')}`);
+          // Refresh the sidebar to show empty state
+          loadAllStories();
         } else {
           alert(`Error: ${result.error}`);
         }
@@ -1168,6 +1706,226 @@
         alert('Failed to clear worlds. Please check the console for more details.');
       }
     }
+
+    function showCreateWorldForm() {
+      const textDisplay = document.getElementById('textDisplay');
+      const continueSection = document.getElementById('continueSection');
+
+      // Hide continue section
+      continueSection.style.display = 'none';
+
+      // Create inline form similar to new story screen
+      textDisplay.innerHTML = `
+        <div class="create-world-form">
+          <h2 style="color: var(--accent-primary); text-align: center; margin-bottom: 2rem;">Create New World</h2>
+          
+          <div style="margin: 1.5rem auto 0.5rem auto; text-align: center;">
+            <label for="worldNameInput" style="font-weight:600; font-size:1.1rem; margin-right:0.7rem;">World Name:</label>
+            <input type="text" id="worldNameInput" placeholder="Enter world name (e.g., 'adventure-realm')" 
+                   style="padding:0.7rem 1.2rem; border-radius:12px; border:2px solid #2E8B57; font-size:1.1rem; background:var(--bg-primary); color:var(--text-primary); box-shadow:0 2px 8px rgba(0,0,0,0.07); outline:none; width: 300px; margin-top: 0.5rem;"
+                   pattern="[a-zA-Z0-9_-]+" title="Only letters, numbers, hyphens, and underscores allowed">
+          </div>
+          
+          <div style="margin: 1rem auto 0.5rem auto; text-align: center;">
+            <label for="worldDescInput" style="font-weight:600; font-size:1.1rem; margin-right:0.7rem;">Description:</label>
+            <textarea id="worldDescInput" placeholder="Describe this world's setting, characters, and theme..." 
+                      style="padding:0.7rem 1.2rem; border-radius:12px; border:2px solid #2E8B57; font-size:1.1rem; background:var(--bg-primary); color:var(--text-primary); box-shadow:0 2px 8px rgba(0,0,0,0.07); outline:none; width: 300px; height: 100px; margin-top: 0.5rem; resize: vertical; font-family: inherit;"
+                      rows="4"></textarea>
+          </div>
+          
+          <div style="margin: 2rem auto; text-align: center; display: flex; gap: 1rem; justify-content: center;">
+            <button onclick="cancelCreateWorld()" style="padding:0.8rem 2rem; border-radius:8px; border:2px solid var(--border-color); background:var(--bg-secondary); color:var(--text-primary); cursor:pointer; font-size:1rem; font-weight:600;">Cancel</button>
+            <button onclick="submitCreateWorld()" style="padding:0.8rem 2rem; border-radius:8px; border:none; background:var(--accent-primary); color:white; cursor:pointer; font-size:1rem; font-weight:600;">Create World</button>
+          </div>
+        </div>
+      `;
+
+      // Focus on the name input
+      setTimeout(() => {
+        document.getElementById('worldNameInput').focus();
+      }, 100);
+    }
+
+    function cancelCreateWorld() {
+      const textDisplay = document.getElementById('textDisplay');
+      textDisplay.innerHTML = `
+        <div class="empty-state">
+          <p>Select a story from the sidebar or create a new one to get started!</p>
+        </div>
+      `;
+    }
+
+    function submitCreateWorld() {
+      const worldName = document.getElementById('worldNameInput').value.trim();
+      const worldDescription = document.getElementById('worldDescInput').value.trim();
+
+      if (!worldName || !worldDescription) {
+        alert('Please fill in both world name and description.');
+        return;
+      }
+
+      // Validate world name format
+      const validNameRegex = /^[a-zA-Z0-9_-]+$/;
+      if (!validNameRegex.test(worldName)) {
+        alert('World name can only contain letters, numbers, hyphens, and underscores.');
+        return;
+      }
+
+      createNewWorld(null, worldName, worldDescription);
+    }
+
+    async function createNewWorld(event, nameOverride, descOverride) {
+      if (event) event.preventDefault();
+
+      const worldName = nameOverride || document.getElementById('worldName')?.value.trim();
+      const worldDescription = descOverride || document.getElementById('worldDescription')?.value.trim();
+
+      if (!worldName || !worldDescription) {
+        alert('Please fill in both world name and description.');
+        return;
+      }
+
+      // Validate world name format
+      const validNameRegex = /^[a-zA-Z0-9_-]+$/;
+      if (!validNameRegex.test(worldName)) {
+        alert('World name can only contain letters, numbers, hyphens, and underscores.');
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/create_world', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            name: worldName,
+            description: worldDescription
+          })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          alert(`Success! World "${worldName}" has been created.`);
+          cancelCreateWorld(); // Return to empty state
+          // Refresh the stories list to include the new world
+          loadAllStories();
+        } else {
+          alert(`Error: ${result.error}`);
+        }
+      } catch (error) {
+        console.error('Error creating world:', error);
+        alert('Failed to create world. Please check the console for more details.');
+      }
+    }
+
+    async function loadAllStories() {
+      try {
+        const response = await fetch('/api/get_all_stories');
+        const data = await response.json();
+
+        if (data.success) {
+          const worldGroups = document.getElementById('worldGroups');
+          worldGroups.innerHTML = ''; // Clear existing content
+
+          // Group stories by world
+          data.worlds.forEach(world => {
+            const worldGroup = document.createElement('div');
+            worldGroup.className = 'world-group';
+
+            // Create world header
+            const worldHeader = document.createElement('div');
+            worldHeader.className = 'world-header';
+            worldHeader.onclick = () => toggleWorldGroup(world.name);
+
+            const storyCount = world.stories ? world.stories.length : 0;
+            worldHeader.innerHTML = `
+              <div class="world-name">${world.name}</div>
+              <div class="world-count">${storyCount} stories</div>
+            `;
+
+            worldGroup.appendChild(worldHeader);
+
+            // Create stories container
+            const worldStories = document.createElement('div');
+            worldStories.className = 'world-stories';
+            worldStories.id = `world-${world.name}`;
+            worldStories.style.display = 'block'; // Start expanded
+
+            if (world.stories && world.stories.length > 0) {
+              world.stories.forEach((story, index) => {
+                const storyItem = document.createElement('div');
+                storyItem.className = 'sidebar-story-item';
+                storyItem.onclick = () => displayStory(story.content, world.name, story.story_index);
+
+                storyItem.innerHTML = `
+                  <div class="sidebar-story-title">${story.title}</div>
+                  <div class="sidebar-story-preview">${story.preview}</div>
+                `;
+
+                worldStories.appendChild(storyItem);
+              });
+            } else {
+              const emptyMessage = document.createElement('div');
+              emptyMessage.className = 'sidebar-story-item';
+              emptyMessage.style.fontStyle = 'italic';
+              emptyMessage.style.color = 'var(--text-muted)';
+              emptyMessage.textContent = 'No stories yet';
+              worldStories.appendChild(emptyMessage);
+            }
+
+            worldGroup.appendChild(worldStories);
+            worldGroups.appendChild(worldGroup);
+          });
+
+          // If no worlds exist, show a message
+          if (data.worlds.length === 0) {
+            worldGroups.innerHTML = `
+              <div style="text-align: center; color: var(--text-muted); font-style: italic; padding: 2rem;">
+                No worlds found.<br>Create your first world to get started!
+              </div>
+            `;
+          }
+        } else {
+          console.error('Failed to load stories:', data.error);
+        }
+      } catch (error) {
+        console.error('Error loading stories:', error);
+      }
+    }
+
+    function toggleWorldGroup(worldName) {
+      const worldStories = document.getElementById(`world-${worldName}`);
+      if (worldStories) {
+        if (worldStories.style.display === 'none') {
+          worldStories.style.display = 'block';
+        } else {
+          worldStories.style.display = 'none';
+        }
+      }
+    }
+
+    function displayStory(storyContent, worldName, storyIndex) {
+      console.log("Story Idx:" + storyIndex);
+      const textDisplay = document.getElementById('textDisplay');
+      const continueSection = document.getElementById('continueSection');
+
+      // Render markdown content
+      const renderedMarkdown = marked.parse(storyContent);
+      textDisplay.innerHTML = `<div class="story-content">${renderedMarkdown}</div>`;
+
+      // Show continue button when content is displayed
+      continueSection.style.display = 'block';      // Add some visual feedback
+      textDisplay.classList.remove('slide-in');
+      textDisplay.classList.add('slide-up');
+      setTimeout(() => {
+        textDisplay.classList.remove('slide-up');
+        textDisplay.classList.add('slide-in');
+      }, 100);
+    }
+
+
 
     function selectOption(optionElement, value) {
       // Remove selected class from all options
@@ -1464,9 +2222,59 @@
       }
     });
 
+    // Dark Mode Functionality
+    function toggleDarkMode() {
+      const html = document.documentElement;
+      const toggleButton = document.querySelector('.dark-mode-toggle');
+      const icon = toggleButton.querySelector('.icon');
+      const text = toggleButton.querySelector('.text');
+
+      if (html.getAttribute('data-theme') === 'dark') {
+        // Switch to light mode
+        html.removeAttribute('data-theme');
+        localStorage.setItem('theme', 'light');
+        // Show current state (now light mode)
+        icon.textContent = '☀️';
+        text.textContent = 'Light';
+      } else {
+        // Switch to dark mode
+        html.setAttribute('data-theme', 'dark');
+        localStorage.setItem('theme', 'dark');
+        // Show current state (now dark mode)
+        icon.textContent = '🌙';
+        text.textContent = 'Dark';
+      }
+    }
+
+    // Initialize theme on page load
+    function initializeTheme() {
+      const savedTheme = localStorage.getItem('theme');
+      const html = document.documentElement;
+      const toggleButton = document.querySelector('.dark-mode-toggle');
+
+      if (toggleButton) {
+        const icon = toggleButton.querySelector('.icon');
+        const text = toggleButton.querySelector('.text');
+
+        if (savedTheme === 'dark') {
+          html.setAttribute('data-theme', 'dark');
+          // Show current state (dark mode)
+          icon.textContent = '🌙';
+          text.textContent = 'Dark';
+        } else {
+          html.removeAttribute('data-theme');
+          // Show current state (light mode)
+          icon.textContent = '☀️';
+          text.textContent = 'Light';
+        }
+      }
+    }
+
     // Initialize the page
     document.addEventListener('DOMContentLoaded', function () {
       console.log('Duolingo2.0 loaded successfully!');
+      initializeTheme();
+      loadAllStories();
     });
   </script>
 </body>

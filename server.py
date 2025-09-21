@@ -104,9 +104,15 @@ class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                 data = json.loads(post_data)
                 topic = data.get('topic', 'default topic')
                 language = data.get('language', 'English')
+                format_index = int(data.get('format', '0'))  # Default to 0 (play script)
                 world_file = data.get('world_file', 'data/world0.json')
                 current_content_idx = data.get('current_content_idx', 'new')
-                prompt_base = backend.prompt_bases[0]  # Use story prompt
+                
+                # Select prompt base based on format: 0 = play script, 1 = short story
+                if format_index == 1:
+                    prompt_base = backend.prompt_bases[1]  # Short story
+                else:
+                    prompt_base = backend.prompt_bases[0]  # Play script (default)
                 story, ended = backend.generate_content(prompt_base, topic, language, world_file, current_content_idx)
                 response = {"story": story, "ended": ended}
                 self.send_response(200)
@@ -169,12 +175,14 @@ class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                 base_url = "https://ftapi.pythonanywhere.com/translate"
                 
                 # Build URL parameters - use auto-detect if source is 'auto'
+                import urllib.parse
+                encoded_text = urllib.parse.quote(text)
                 if source_lang == 'auto':
                     # Use the auto-detect method (second way - only dl and text)
-                    url = f"{base_url}?dl={target_lang}&text={requests.utils.quote(text)}"
+                    url = f"{base_url}?dl={target_lang}&text={encoded_text}"
                 else:
                     # Use the explicit source language method (first way - sl, dl, and text)
-                    url = f"{base_url}?sl={source_lang}&dl={target_lang}&text={requests.utils.quote(text)}"
+                    url = f"{base_url}?sl={source_lang}&dl={target_lang}&text={encoded_text}"
                 
                 # Make request to Free Translate API
                 response = requests.get(url, timeout=15)

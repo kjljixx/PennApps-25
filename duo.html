@@ -766,6 +766,7 @@
 
   <script>
     let lastStoryLanguage = 'French';
+    let lastStoryFormat = '0'; // Default to play script
     // Modern Navbar Scroll Effect
     window.addEventListener('scroll', function () {
       const navbar = document.querySelector('.navbar');
@@ -786,7 +787,9 @@
       }
       // Always define buttons inside this function
       const buttons = document.querySelectorAll('.start-story-btn');
-      // Remove any previous language select or Felix input
+      // Remove any previous format select, language select or Felix input
+      const oldFormatSelect = document.getElementById('formatSelect');
+      if (oldFormatSelect) oldFormatSelect.remove();
       const oldLangSelect = document.getElementById('languageSelect');
       if (oldLangSelect) oldLangSelect.remove();
       const oldFelixInput = document.getElementById('felixStoryInput');
@@ -808,10 +811,23 @@
           btnParent.insertBefore(continueBtn, buttons[0].nextSibling);
         }
       }
-      // Insert language selection below New Story button (modern styling)
+      // Insert format and language selection below New Story button (modern styling)
+      let formatSelect = document.createElement('div');
+      formatSelect.id = 'formatSelect';
+      formatSelect.style.margin = '1.5rem auto 0.5rem auto';
+      formatSelect.style.textAlign = 'center';
+      formatSelect.innerHTML = `
+                <label for="mc-format" style="font-weight:600; font-size:1.1rem; margin-right:0.7rem;">Story Format:</label>
+                <select id="mc-format" style="padding:0.7rem 2.2rem; border-radius:12px; border:2px solid #2E8B57; font-size:1.1rem; background:#FDFCF7; color:#2E8B57; box-shadow:0 2px 8px rgba(0,0,0,0.07); outline:none;">
+                    <option value="0">Play Script</option>
+                    <option value="1">Short Story</option>
+                </select>
+            `;
+      buttons[0].parentNode.insertBefore(formatSelect, buttons[1]);
+
       let langSelect = document.createElement('div');
       langSelect.id = 'languageSelect';
-      langSelect.style.margin = '1.5rem auto 0.5rem auto';
+      langSelect.style.margin = '1rem auto 0.5rem auto';
       langSelect.style.textAlign = 'center';
       langSelect.innerHTML = `
                 <label for="mc-language" style="font-weight:600; font-size:1.1rem; margin-right:0.7rem;">Choose a language:</label>
@@ -821,7 +837,7 @@
                     <option value="German">German</option>
                 </select>
             `;
-      buttons[0].parentNode.insertBefore(langSelect, buttons[1]);
+      formatSelect.parentNode.insertBefore(langSelect, formatSelect.nextSibling);
 
       // Animate Felix from bottom and expand
       let felixInput = document.createElement('div');
@@ -846,6 +862,7 @@
         if (e.key === 'Enter') {
           const prompt = felixInput.querySelector('#storyPromptInput').value.trim();
           const language = document.getElementById('mc-language').value;
+          const format = document.getElementById('mc-format').value;
           // Animate NSF shrink and slide down
           const felixExpand = felixInput.querySelector('#felixExpand');
           if (felixExpand) {
@@ -855,6 +872,7 @@
           setTimeout(() => {
             felixInput.remove();
             langSelect.remove();
+            formatSelect.remove();
             // Move Continue button below previous stories after NSF disappears (after Enter)
             if (continueBtn) {
               continueBtn.classList.add('move-out');
@@ -869,9 +887,9 @@
                 }, 10);
               }, 300);
             }
-            // Call the callback with user input and language
+            // Call the callback with user input, language, and format
             if (typeof callback === 'function') {
-              callback(prompt, language);
+              callback(prompt, language, format);
             }
           }, 450);
         }
@@ -915,7 +933,7 @@
 
       // If new story, run newStoryFelix and wait for user input
       if (content_index === 'new') {
-        newStoryFelix(function (prompt, language) {
+        newStoryFelix(function (prompt, language, format) {
           // Now run the main story logic with collected variables
           textDisplay.innerHTML = '<p>Generating your story... Please wait!</p>';
           textDisplay.classList.remove('slide-in');
@@ -928,6 +946,7 @@
             body: JSON.stringify({
               topic: prompt || 'adventure',
               language: language,
+              format: format || '0',
               world_file: 'data/world0.json',
               current_content_index: content_index
             })

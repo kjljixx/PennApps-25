@@ -2,7 +2,9 @@ import os
 import dotenv
 dotenv.load_dotenv()
 import json
+from typing import Union
 from cerebras.cloud.sdk import Cerebras
+from cerebras.cloud.sdk.types import chat as cerebras_types
 
 client = Cerebras(
     api_key=os.environ.get("CEREBRAS_API_KEY"),  # This is the default and can be omitted
@@ -75,13 +77,18 @@ def get_text(content):
             filtered_lines.append(line)
     return "\n".join(filtered_lines).strip()
 
-def generate_content(prompt_base, topic, language, world_file, current_content_idx="new"):
+def generate_content(prompt_base, topic, language, world_file, current_content_idx: Union[int, str] = "new"):
     with open(world_file, "r") as f:
         world = json.load(f)
     if current_content_idx == "new":
         world["backstory"].append("")
         current_content_idx = len(world["backstory"]) - 1
-    completion = "\n" + get_response(get_full_prompt(prompt_base, topic, language, json.dumps(world), world["backstory"][current_content_idx])).choices[0].message.content
+    response = get_response(get_full_prompt(prompt_base, topic, language, json.dumps(world), world["backstory"][current_content_idx]))
+    assert isinstance(response, cerebras_types.ChatCompletion)
+    assert isinstance(response.choices, list)
+    assert isinstance(response.choices[0].message, cerebras_types.chat_completion.ChatCompletionResponseChoiceMessage)
+    assert isinstance(response.choices[0].message.content, str)
+    completion = "\n" + response.choices[0].message.content
     world["backstory"][current_content_idx] += completion
     with open(world_file, "w") as f:
         json.dump(world, f)

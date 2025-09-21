@@ -1,3 +1,5 @@
+    // Track the language of the last generated story
+    let lastStoryLanguage = 'French';
 
 <!DOCTYPE html>
 <html lang="en">
@@ -682,7 +684,7 @@
         // Do not move Continue button yet; keep it next to New Story until Enter is pressed
         const continueBtn = buttons[1];
         if (continueBtn) {
-            continueBtn.textContent = 'Continue Previous';
+            continueBtn.textContent = 'Continue Story';
             continueBtn.style.display = 'inline-block';
             continueBtn.classList.remove('move-out');
             continueBtn.classList.remove('move-in');
@@ -799,7 +801,7 @@
 
             // If new story, run newStoryFelix and wait for user input
             if (content_index === 'new') {
-                    newStoryFelix(function(prompt, language) {
+                newStoryFelix(function(prompt, language) {
                     // Now run the main story logic with collected variables
                     textDisplay.innerHTML = '<p>Generating your story... Please wait!</p>';
                     textDisplay.classList.remove('slide-in');
@@ -811,13 +813,14 @@
                         },
                         body: JSON.stringify({
                             topic: prompt || 'adventure',
-                            language: language || 'French',
+                            language: language,
                             world_file: 'data/world0.json',
                             current_content_index: content_index
                         })
                     })
                     .then(response => response.text())
                     .then(data => {
+                        lastStoryLanguage = language; // Save the language for future continues
                         console.log('Generated story:', data);
                         textDisplay.classList.add('slide-up');
                         setTimeout(() => {
@@ -876,7 +879,7 @@
                     },
                     body: JSON.stringify({
                         topic: 'adventure', // or previous topic
-                        language: 'French', // or previous language
+                        language: lastStoryLanguage, // use last story's language
                         world_file: 'data/world0.json',
                         current_content_index: content_index
                     })

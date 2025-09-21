@@ -1,6 +1,7 @@
 import os
 import dotenv
 dotenv.load_dotenv()
+import copy
 import json
 from typing import Union
 from cerebras.cloud.sdk import Cerebras
@@ -29,11 +30,11 @@ prompt_bases = [
     ALICE: Who are you? What adventure?\n
     ...(scene continues, this is just a snippet)\n
     Respond with ONLY the scene in the format described above, do not include any other text. Include AT LEAST 20 lines of dialogue and stage directions.\n
-    Please continue the play below by first adding a summary of the play, focusing on what you plan to write about in the current scene (including characterization and plot) and potential directions for the story after this scene, enclosed in <info></info> tags, and then add ONE scene.\n
-    If there are currently no scenes, please begin the play with the title of the play (in # heading 1), then ONE introductory scene.\n
+    Please continue the play below (the CURRENT play consists of the text IN "Current Content") by first adding a summary of the play, focusing on what you plan to write about in the current scene (including characterization and plot) and potential directions for the story after this scene, enclosed in <info></info> tags, and then add ONE scene.\n
+    If there are currently no scenes IN "Current Content", please begin the play with the title of the play (in # heading 1), then ONE introductory scene.\n
     If you reach a conclusion to the ENTIRE play after this scene, end it with a line saying ### THE END. (in the language of the play). Then, in a new line, write <end>\n
     Otherwise, end the scene with a NEWLINE after the last line of dialogue or stage directions of the CURRENT scene.\n
-    Do not include the name of the next scene. Note that a good play should have AT LEAST 5 scenes.\n
+    Do not include the name of the next scene. Note that a good play should have around 5 scenes.\n
     """,
     """
     You will generate a short story about the given topic in the given language in markdown.\n
@@ -77,14 +78,38 @@ def get_text(content):
             filtered_lines.append(line)
     return "\n".join(filtered_lines).strip()
 
+def get_info(content):
+    lines = content.split("\n")
+    in_info = False
+    info_lines = []
+    for line in lines:
+        if line.startswith("<info>"):
+            in_info = True
+        elif line.startswith("</info>"):
+            in_info = False
+        elif in_info:
+            info_lines.append(line)
+    return "\n".join(info_lines).strip()
+
 def generate_content(prompt_base, topic, language, world_file, current_content_idx: Union[int, str] = "new"):
     with open(world_file, "r") as f:
         world = json.load(f)
     if current_content_idx == "new":
         world["backstory"].append("")
         current_content_idx = len(world["backstory"]) - 1
-    response = get_response(get_full_prompt(prompt_base, topic, language, json.dumps(world), world["backstory"][current_content_idx] if world["backstory"][current_content_idx] != "" else "<empty>"))
+
+    concise_world = copy.deepcopy(world)
+    for i in range(len(world["backstory"])):
+        concise_world["backstory"][i] = get_info(world["backstory"][i])
+    concise_world["backstory"][current_content_idx] = ""
+
+    response = get_response(
+        get_full_prompt(
+            prompt_base, topic, language,
+            '{"Description":' + json.dumps(concise_world["description"]) + ', "Previous Plots/Stories":' + json.dumps(concise_world["backstory"]) + '}',
+            world["backstory"][current_content_idx] if world["backstory"][current_content_idx] != "" else "<empty>"))
     completion = "\n" + response.choices[0].message.content # type: ignore
+
     world["backstory"][current_content_idx] += completion
     with open(world_file, "w") as f:
         json.dump(world, f)

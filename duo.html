@@ -427,6 +427,25 @@
             transform: translateY(-2px);
         }
 
+        .clear-worlds-btn {
+            background-color: #DC143C; /* Bold red for destructive action */
+            color: white;
+            border: none;
+            padding: 1.6rem 2.4rem;
+            font-size: 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 1.6rem;
+            transition: all 0.3s;
+            font-weight: 700;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .clear-worlds-btn:hover {
+            background-color: #B22222; /* Darker red on hover */
+            transform: translateY(-2px);
+        }
+
         /* Felix Icon */
         .felix-icon {
             position: fixed;
@@ -591,6 +610,7 @@
                     <h2>User Profile</h2>
                     <p>Welcome to Duolingo2.0!</p>
                     <button class="skill-test-btn" onclick="showSkillTest()">Take Skill Test</button>
+                    <button class="clear-worlds-btn" onclick="clearAllWorlds()">Clear All Worlds</button>
                 </div>
                 <div class="profile-stats">
                     <div class="stat">
@@ -1005,6 +1025,35 @@
             
             // Show profile page
             document.getElementById('profile').classList.add('active');
+        }
+
+        async function clearAllWorlds() {
+            // Show confirmation dialog
+            const confirmClear = confirm('Are you sure you want to clear all world data? This action cannot be undone.');
+            
+            if (!confirmClear) {
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/clear_worlds', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert(`Success! ${result.message}\nCleared worlds: ${result.cleared_worlds.join(', ')}`);
+                } else {
+                    alert(`Error: ${result.error}`);
+                }
+            } catch (error) {
+                console.error('Error clearing worlds:', error);
+                alert('Failed to clear worlds. Please check the console for more details.');
+            }
         }
 
         function selectOption(optionElement, value) {

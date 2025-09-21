@@ -122,6 +122,37 @@ class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                 self.send_header('Content-type', 'application/json')
                 self.end_headers()
                 self.wfile.write(json.dumps({"error": str(e)}).encode('utf-8'))
+        elif self.path == '/api/clear_worlds':
+            import json
+            import glob
+            try:
+                # Find all JSON files in the data directory
+                world_files = glob.glob('data/*.json')
+                cleared_worlds = []
+                
+                for world_file in world_files:
+                    # Extract world name from file path (e.g., 'data/world0.json' -> 'world0')
+                    world_name = os.path.basename(world_file).replace('.json', '')
+                    backend.clear_world(world_name)
+                    cleared_worlds.append(world_name)
+                
+                self.send_response(200)
+                self.send_header('Content-type', 'application/json')
+                self.end_headers()
+                response = {
+                    "success": True,
+                    "message": f"Successfully cleared {len(cleared_worlds)} world(s)",
+                    "cleared_worlds": cleared_worlds
+                }
+                self.wfile.write(json.dumps(response).encode('utf-8'))
+            except Exception as e:
+                print(traceback.format_exc())
+                print("Error clearing worlds:", e)
+                self.send_response(500)
+                self.send_header('Content-type', 'application/json')
+                self.end_headers()
+                response = {"success": False, "error": str(e)}
+                self.wfile.write(json.dumps(response).encode('utf-8'))
         else:
             self.send_response(404)
             self.send_header('Content-type', 'application/json')

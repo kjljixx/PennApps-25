@@ -33,7 +33,7 @@ prompt_bases = [
     START your response by first adding a summary of the play, focusing on what you plan to write about in the current scene (including characterization and plot) and potential directions for the story after this scene, enclosed in <info></info> tags (each of the opening and closing info tags should receive their own line).\n
     IF there are currently no scenes IN "Current Content", please begin the play with the title of the play (in # heading 1)\n
     THEN, add ONE scene that continues the current play.\n
-    NEXT, please write a brief summary enclosed in <summary></summary> tags (each of the opening and closing summary tags should receive their own line) of the scene you just wrote\n
+    NEXT, please write a brief summary enclosed in <summary></summary> tags (each of the opening and closing summary tags should receive their own line) of the scene you just wrote. Do NOT include the title of the play or the scene in your summary.\n
     FINALLY, IF you reach a conclusion to the ENTIRE play after this scene, end it with a line saying ### THE END. (in the language given). Then, in a new line, write <end>\n
     OTHERWISE, end the scene with a NEWLINE after the last line of dialogue or stage directions of the CURRENT scene.\n
     DO NOT include the name of the next scene. Note that a good play should have around 5 scenes.\n
@@ -46,7 +46,7 @@ prompt_bases = [
     (Note: Do NOT use this as a style or plot reference unless it would fit the topic; use this example as a reference for how complex your plot and characters should be).\n
     Please BEGIN by first adding a summary of the story, focusing on what you plan to write about (separate into Exposition, Inciting Incident, Rising Action, Climax, Falling Action, Resolution) (including characterization and plot) and potential directions for the story, enclosed in <info></info> tags (each of the opening and closing info tags should receive their own line)\n
     THEN, write the story, based on the given guidelines.\n
-    AFTER you finish writing the story, please write a brief summary enclosed in <summary></summary> tags (each of the opening and closing summary tags should receive their own line) of the story you just wrote\n
+    AFTER you finish writing the story, please write a brief summary enclosed in <summary></summary> tags (each of the opening and closing summary tags should receive their own line) of the story you just wrote. Do NOT include the title of the story in your summary\n
     END the story with a final line saying ### THE END. (in the language given). Then, in a new line, write <end>\n
     Note that good stories should have highly descriptive language (including literary and rhetorical devices), and be AT LEAST 1000 words long.\n
     """

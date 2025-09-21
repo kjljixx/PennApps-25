@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -561,8 +562,8 @@
         <div id="chat" class="page active">
             <div class="chat-container">
                 <!-- <h1 style="color: #2E8B57; font-family: 'Poppins', sans-serif; font-weight: 700; margin-bottom: 360 px;">Story Generator</h1> -->
-                <button class="start-story-btn" onclick="handleStoryButton(0)">New Story</button>
-                <button class="start-story-btn" onclick="handleStoryButton(1)" style="margin-left: 1rem;">Continue</button>
+                <button class="start-story-btn" onclick="handleStoryButton(0, 'new')">New Story</button>
+                <button class="start-story-btn" onclick="handleStoryButton(1, -1)" style="margin-left: 1rem;">Continue</button>
                 
                 <div class="text-display" id="textDisplay">
                     <p> </p>
@@ -658,6 +659,106 @@
             }
         });
 
+
+        // Felix Icon Logic
+    function newStoryFelix(callback){
+    console.log('newStoryFelix called');
+    try {
+        } catch (err) {
+            console.error('Error in newStoryFelix:', err);
+        }
+        // Always define buttons inside this function
+        const buttons = document.querySelectorAll('.start-story-btn');
+        // Remove any previous language select or Felix input
+        const oldLangSelect = document.getElementById('languageSelect');
+        if (oldLangSelect) oldLangSelect.remove();
+        const oldFelixInput = document.getElementById('felixStoryInput');
+        if (oldFelixInput) oldFelixInput.remove();
+
+        // Hide Felix icon when story creation input appears
+        const felixIcon = document.getElementById('felixIcon');
+        if (felixIcon) felixIcon.style.display = 'none';
+        // Do not move Continue button yet; keep it next to New Story until Enter is pressed
+        const continueBtn = buttons[1];
+        if (continueBtn) {
+            continueBtn.textContent = 'Continue Previous';
+            continueBtn.style.display = 'inline-block';
+            continueBtn.classList.remove('move-out');
+            continueBtn.classList.remove('move-in');
+            // Place it right after New Story button ONLY if not already there
+            const btnParent = buttons[0].parentNode;
+            if (btnParent.children[1] !== continueBtn) {
+                btnParent.insertBefore(continueBtn, buttons[0].nextSibling);
+            }
+        }
+            // Insert language selection below New Story button (modern styling)
+            let langSelect = document.createElement('div');
+            langSelect.id = 'languageSelect';
+            langSelect.style.margin = '1.5rem auto 0.5rem auto';
+            langSelect.style.textAlign = 'center';
+            langSelect.innerHTML = `
+                <label for="mc-language" style="font-weight:600; font-size:1.1rem; margin-right:0.7rem;">Choose a language:</label>
+                <select id="mc-language" style="padding:0.7rem 2.2rem; border-radius:12px; border:2px solid #2E8B57; font-size:1.1rem; background:#FDFCF7; color:#2E8B57; box-shadow:0 2px 8px rgba(0,0,0,0.07); outline:none;">
+                    <option value="French">French</option>
+                </select>
+            `;
+            buttons[0].parentNode.insertBefore(langSelect, buttons[1]);
+
+            // Animate Felix from bottom and expand
+            let felixInput = document.createElement('div');
+            felixInput.id = 'felixStoryInput';
+            felixInput.style.margin = '2rem auto 0.5rem auto';
+            felixInput.style.display = 'flex';
+            felixInput.style.justifyContent = 'center';
+            felixInput.innerHTML = `
+                <div id="felixExpand" style="display:flex; align-items:center; gap:1.2rem; background:white; border-radius:2.4rem; box-shadow:0 4px 16px rgba(0,0,0,0.13); border:2px solid #2E8B57; padding:0.7rem 2rem; position:relative; animation: felixUp 0.5s cubic-bezier(0.4,0,0.2,1);">
+                    <img src="static/felixthefox.png" alt="Felix the Fox" style="width:56px; height:56px; border-radius:50%; border:2px solid #F77F00; box-shadow:0 2px 8px rgba(0,0,0,0.2);">
+                    <input type="text" id="storyPromptInput" placeholder="describe your story and press Enter" style="padding:0.7rem 1.2rem; border-radius:2rem; border:2px solid #2E8B57; font-size:1.1rem; font-family:'Merriweather',serif; width:340px; margin-right:1.2rem;">
+                </div>
+                <style>
+                @keyframes felixUp { from { transform: translateY(120px) scale(0.7); opacity:0; } to { transform: translateY(0) scale(1); opacity:1; } }
+                @keyframes felixDown { from { transform: translateY(0) scale(1); opacity:1; } to { transform: translateY(40px) scale(0.7); opacity:0; } }
+                </style>
+            `;
+            langSelect.parentNode.insertBefore(felixInput, langSelect.nextSibling);
+
+            // NSF input triggers story generation on Enter
+            felixInput.querySelector('#storyPromptInput').addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    const prompt = felixInput.querySelector('#storyPromptInput').value.trim();
+                    const language = document.getElementById('mc-language').value;
+                    // Animate NSF shrink and slide down
+                    const felixExpand = felixInput.querySelector('#felixExpand');
+                    if (felixExpand) {
+                        felixExpand.style.animation = 'felixDown 0.45s cubic-bezier(0.4,0,0.2,1)';
+                    }
+                    // Remove NSF and dropdown from UI after animation
+                    setTimeout(() => {
+                        felixInput.remove();
+                        langSelect.remove();
+                        // Move Continue button below previous stories after NSF disappears (after Enter)
+                        if (continueBtn) {
+                            continueBtn.classList.add('move-out');
+                            setTimeout(() => {
+                                continueBtn.classList.remove('move-out');
+                                const previousStories = document.querySelector('.previous-stories');
+                                if (previousStories) {
+                                    previousStories.parentNode.insertBefore(continueBtn, previousStories);
+                                }
+                                setTimeout(() => {
+                                    continueBtn.classList.add('move-in');
+                                }, 10);
+                            }, 300);
+                        }
+                        // Call the callback with user input and language
+                        if (typeof callback === 'function') {
+                            callback(prompt, language);
+                        }
+                    }, 450);
+                }
+            });
+    }
+
         // Page Navigation
         function showPage(pageId) {
             // Hide all pages
@@ -688,80 +789,148 @@
         }
 
         // Story Generation Functions
-        function handleStoryButton(btnIndex) {
+        function handleStoryButton(btnIndex, content_index) {
             const textDisplay = document.getElementById('textDisplay');
             const buttons = document.querySelectorAll('.start-story-btn');
-            // Remove move-in class if present
             buttons.forEach(btn => btn.classList.remove('move-in'));
-            // Show loading text immediately, but don't animate out yet
-            textDisplay.innerHTML = '<p>Generating your story... Please wait!</p>';
-            textDisplay.classList.remove('slide-in');
-            textDisplay.classList.remove('slide-up');
 
-            // Fetch story from backend API
-            fetch('/api/generate_story', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    topic: 'adventure', // You can customize or get from user input
-                    language: 'French',
-                    world_file: 'data/world0.json'
-                })
-            })
-            .then(response => response.text())
-            .then(data => {
-                console.log('Generated story:', data);
-                // Animate text out only after story is ready
-                textDisplay.classList.add('slide-up');
-                setTimeout(() => {
-                    textDisplay.innerHTML = `<span>${data}</span>`;
+            // If new story, run newStoryFelix and wait for user input
+            if (content_index === 'new') {
+                    newStoryFelix(function(prompt, language) {
+                    // Now run the main story logic with collected variables
+                    textDisplay.innerHTML = '<p>Generating your story... Please wait!</p>';
+                    textDisplay.classList.remove('slide-in');
                     textDisplay.classList.remove('slide-up');
-                    textDisplay.classList.add('slide-in');
-                }, 400);
-                // Add to previous stories
-                addToPreviousStories(data);
-                // Animate Continue button out, then move and animate in
-                const continueBtn = buttons[1];
-                if (continueBtn) {
-                    continueBtn.classList.add('move-out');
-                    setTimeout(() => {
-                        continueBtn.classList.remove('move-out');
-                        const previousStories = document.querySelector('.previous-stories');
-                        if (previousStories) {
-                            previousStories.parentNode.insertBefore(continueBtn, previousStories);
-                        }
-                        // Animate in
+                    fetch('/api/generate_story', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            topic: prompt || 'adventure',
+                            language: language || 'French',
+                            world_file: 'data/world0.json',
+                            current_content_index: content_index
+                        })
+                    })
+                    .then(response => response.text())
+                    .then(data => {
+                        console.log('Generated story:', data);
+                        textDisplay.classList.add('slide-up');
                         setTimeout(() => {
-                            continueBtn.classList.add('move-in');
-                        }, 10);
-                    }, 300);
-                }
-            })
-            .catch(async error => {
-                let errorMsg = 'Error generating story:';
-                if (error instanceof Response) {
-                    try {
-                        const errJson = await error.json();
-                        errorMsg += ' ' + (errJson.error || JSON.stringify(errJson));
-                    } catch (e) {
-                        // If not valid JSON, try to get raw text
-                        try {
-                            const errText = await error.text();
-                            errorMsg += ' ' + errText;
-                        } catch (e2) {
-                            errorMsg += ' ' + error.statusText;
+                            textDisplay.innerHTML = `<span>${data}</span>`;
+                            textDisplay.classList.remove('slide-up');
+                            textDisplay.classList.add('slide-in');
+                        }, 400);
+                        addToPreviousStories(data);
+                        const continueBtn = buttons[1];
+                        if (continueBtn) {
+                            continueBtn.classList.add('move-out');
+                            setTimeout(() => {
+                                continueBtn.classList.remove('move-out');
+                                const previousStories = document.querySelector('.previous-stories');
+                                if (previousStories) {
+                                    previousStories.parentNode.insertBefore(continueBtn, previousStories);
+                                }
+                                setTimeout(() => {
+                                    continueBtn.classList.add('move-in');
+                                }, 10);
+                            }, 300);
                         }
+                    })
+                    .catch(async error => {
+                        let errorMsg = 'Error generating story:';
+                        if (error instanceof Response) {
+                            try {
+                                const errJson = await error.json();
+                                errorMsg += ' ' + (errJson.error || JSON.stringify(errJson));
+                            } catch (e) {
+                                try {
+                                    const errText = await error.text();
+                                    errorMsg += ' ' + errText;
+                                } catch (e2) {
+                                    errorMsg += ' ' + error.statusText;
+                                }
+                            }
+                        } else if (error && error.message) {
+                            errorMsg += ' ' + error.message;
+                        } else {
+                            errorMsg += ' ' + error;
+                        }
+                        console.error(errorMsg);
+                        textDisplay.innerHTML = `<p>${errorMsg}</p>`;
+                    });
+                });
+            } else {
+                // Continue logic: run story generation directly
+                textDisplay.innerHTML = '<p>Generating your story... Please wait!</p>';
+                textDisplay.classList.remove('slide-in');
+                textDisplay.classList.remove('slide-up');
+                fetch('/api/generate_story', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        topic: 'adventure', // or previous topic
+                        language: 'French', // or previous language
+                        world_file: 'data/world0.json',
+                        current_content_index: content_index
+                    })
+                })
+                .then(response => response.text())
+                .then(data => {
+                    console.log('Generated story:', data);
+                    textDisplay.classList.add('slide-up');
+                    setTimeout(() => {
+                        textDisplay.innerHTML = `<span>${data}</span>`;
+                        textDisplay.classList.remove('slide-up');
+                        textDisplay.classList.add('slide-in');
+                    }, 400);
+                    addToPreviousStories(data);
+                    const continueBtn = buttons[1];
+                    if (continueBtn) {
+                        continueBtn.classList.add('move-out');
+                        setTimeout(() => {
+                            continueBtn.classList.remove('move-out');
+                            const previousStories = document.querySelector('.previous-stories');
+                            if (previousStories) {
+                                previousStories.parentNode.insertBefore(continueBtn, previousStories);
+                            }
+                            setTimeout(() => {
+                                continueBtn.classList.add('move-in');
+                            }, 10);
+                        }, 300);
                     }
-                } else if (error && error.message) {
-                    errorMsg += ' ' + error.message;
-                } else {
-                    errorMsg += ' ' + error;
-                }
-                console.error(errorMsg);
-                textDisplay.innerHTML = `<p>${errorMsg}</p>`;
-            });
+                })
+                .catch(async error => {
+                    let errorMsg = 'Error generating story:';
+                    if (error instanceof Response) {
+                        try {
+                            const errJson = await error.json();
+                            errorMsg += ' ' + (errJson.error || JSON.stringify(errJson));
+                        } catch (e) {
+                            try {
+                                const errText = await error.text();
+                                errorMsg += ' ' + errText;
+                            } catch (e2) {
+                                errorMsg += ' ' + error.statusText;
+                            }
+                        }
+                    } else if (error && error.message) {
+                        errorMsg += ' ' + error.message;
+                    } else {
+                        errorMsg += ' ' + error;
+                    }
+                    console.error(errorMsg);
+                    textDisplay.innerHTML = `<p>${errorMsg}</p>`;
+                });
+            }
+
+            // Clear previous story text
+            textDisplay.innerHTML = '';
+
+            // All felixInput UI logic is handled inside newStoryFelix
         }
 
         function continueStory() {

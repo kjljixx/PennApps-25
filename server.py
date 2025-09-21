@@ -112,6 +112,7 @@ class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                 self.send_header('Content-type', 'text/html')
                 self.end_headers()
                 self.wfile.write(markdown.markdown(story).encode('utf-8'))
+                # print(story)
                 #self.wfile.write(markdown.markdown(story.encode('utf-8')))
             except Exception as e:
                 print(traceback.format_exc())
@@ -143,6 +144,6 @@ def start_server(port=8000):
             print(f"Error starting server: {e}")
 
 if __name__ == "__main__":
-    # Default port is 8000, but you can change it here
-    PORT = 8004
+    # Default port is 7000, but you can change it here
+    PORT = 7003
     start_server(PORT)

@@ -84,7 +84,7 @@ class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                 topic = data.get('topic', 'default topic')
                 language = data.get('language', 'English')
                 world_file = data.get('world_file', 'data/world0.json')
-                prompt_base = backend.prompt_bases[1]  # Use story prompt
+                prompt_base = backend.prompt_bases[0]  # Use story prompt
                 story, ended = backend.generate_content(prompt_base, topic, language, world_file)
                 response = {"story": story, "ended": ended}
                 self.send_response(200)
@@ -123,5 +123,5 @@ def start_server(port=8000):
 
 if __name__ == "__main__":
     # Default port is 8000, but you can change it here
-    PORT = 8003
+    PORT = 8004
     start_server(PORT)

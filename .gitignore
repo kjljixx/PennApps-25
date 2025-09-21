@@ -1,3 +1,4 @@
 .env
 output.md
 /data
+/__pycache__

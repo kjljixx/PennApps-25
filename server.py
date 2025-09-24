@@ -346,6 +346,40 @@ class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                 self.end_headers()
                 response = {"success": False, "error": str(e)}
                 self.wfile.write(json.dumps(response).encode('utf-8'))
+        elif self.path == '/api/delete_world':
+            import json
+            try:
+                data = json.loads(post_data)
+                world_name = data.get('name', '').strip()
+                
+                if not world_name:
+                    raise ValueError("World name is required")
+                
+                # Check if world exists
+                world_file_path = f"data/{world_name}.json"
+                if not os.path.exists(world_file_path):
+                    raise ValueError(f"World '{world_name}' does not exist")
+                
+                # Delete the world file
+                os.remove(world_file_path)
+                
+                self.send_response(200)
+                self.send_header('Content-type', 'application/json')
+                self.end_headers()
+                response = {
+                    "success": True,
+                    "message": f"World '{world_name}' deleted successfully"
+                }
+                self.wfile.write(json.dumps(response).encode('utf-8'))
+                
+            except Exception as e:
+                print(traceback.format_exc())
+                print("Error deleting world:", e)
+                self.send_response(500)
+                self.send_header('Content-type', 'application/json')
+                self.end_headers()
+                response = {"success": False, "error": str(e)}
+                self.wfile.write(json.dumps(response).encode('utf-8'))
         else:
             self.send_response(404)
             self.send_header('Content-type', 'application/json')
@@ -370,5 +404,5 @@ def start_server(port=8000):
 
 if __name__ == "__main__":
     # Default port is 7000, but you can change it here
-    PORT = 7003
+    PORT = 7005
     start_server(PORT)

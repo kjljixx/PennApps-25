@@ -367,11 +367,12 @@
       background-color: var(--bg-secondary);
       border-radius: 0 12px 12px 0;
       padding: 1.6rem;
+
       border: 2px solid var(--border-color, #ddd);
       border-left: none;
       box-shadow: var(--shadow-medium);
       overflow-y: auto;
-      max-height: 80vh;
+      max-height: 90vh;
       position: overlay;
       top: 5rem;
     }
@@ -440,11 +441,35 @@
       border-radius: 8px;
       margin-bottom: 0.5rem;
       cursor: pointer;
-      transition: background-color 0.2s;
+      transition: background-color 0.2s, transform 0.3s ease;
+      position: relative;
+      user-select: none;
+      touch-action: pan-y pinch-zoom;
     }
 
     .world-header:hover {
       background-color: var(--accent-secondary);
+    }
+    
+    .world-header.swiping {
+      background-color: var(--danger-color);
+      color: white;
+      transform: translateX(-100px);
+    }
+    
+    .world-delete-indicator {
+      position: absolute;
+      right: -80px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--danger-color);
+      font-weight: bold;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    
+    .world-header.swiping .world-delete-indicator {
+      opacity: 1;
     }
 
     .world-name {
@@ -1005,7 +1030,7 @@
 
       .story-sidebar {
         width: 100%;
-        max-height: 40vh;
+        max-height: 50vh;
         order: 2;
         /* Put sidebar below main content on mobile */
       }
@@ -1820,6 +1845,33 @@
       }
     }
 
+    async function deleteWorld(worldName) {
+      try {
+        const response = await fetch('/api/delete_world', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            name: worldName
+          })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          loadAllStories(); // Refresh the list
+          const textDisplay = document.getElementById('textDisplay');
+          textDisplay.innerHTML = `<div class="empty-state"><p>Select a story from the sidebar or create a new one to get started!</p></div>`;
+        } else {
+          alert(`Error: ${result.error}`);
+        }
+      } catch (error) {
+        console.error('Error deleting world:', error);
+        alert('Failed to delete world. Please check the console for more details.');
+      }
+    }
+
     async function loadAllStories() {
       try {
         const response = await fetch('/api/get_all_stories');
@@ -1837,13 +1889,84 @@
             // Create world header
             const worldHeader = document.createElement('div');
             worldHeader.className = 'world-header';
-            worldHeader.onclick = () => toggleWorldGroup(world.name);
-
+            
             const storyCount = world.stories ? world.stories.length : 0;
             worldHeader.innerHTML = `
               <div class="world-name">${world.name}</div>
               <div class="world-count">${storyCount} stories</div>
+              <div class="world-delete-indicator">Delete</div>
             `;
+
+            // Add swipe to delete functionality
+            let startX = 0;
+            let currentX = 0;
+            let isDragging = false;
+
+            worldHeader.addEventListener('mousedown', handleDragStart);
+            worldHeader.addEventListener('touchstart', handleDragStart);
+            
+            worldHeader.addEventListener('mousemove', handleDragMove);
+            worldHeader.addEventListener('touchmove', handleDragMove);
+            
+            worldHeader.addEventListener('mouseup', handleDragEnd);
+            worldHeader.addEventListener('touchend', handleDragEnd);
+            worldHeader.addEventListener('mouseleave', handleDragEnd);
+
+            function handleDragStart(e) {
+              isDragging = true;
+              startX = e.type === 'mousedown' ? e.clientX : e.touches[0].clientX;
+              currentX = startX;
+            }
+
+            function handleDragMove(e) {
+              if (!isDragging) return;
+              
+              const x = e.type === 'mousemove' ? e.clientX : e.touches[0].clientX;
+              const diff = x - startX;
+              
+              // Only allow dragging left (negative diff)
+              if (diff < 0 && diff > -150) {
+                currentX = x;
+                const transform = diff;
+                worldHeader.style.transform = `translateX(${transform}px)`;
+                
+                if (transform < -50) {
+                  worldHeader.classList.add('swiping');
+                } else {
+                  worldHeader.classList.remove('swiping');
+                }
+              }
+              
+              // Prevent scrolling while dragging
+              e.preventDefault();
+            }
+
+            function handleDragEnd(e) {
+              if (!isDragging) return;
+              isDragging = false;
+              
+              const diff = currentX - startX;
+              
+              if (diff < -50) {
+                // Show confirmation dialog
+                if (confirm(`Are you sure you want to delete the world "${world.name}"? This action cannot be undone.`)) {
+                  deleteWorld(world.name);
+                } else {
+                  // Reset position if user cancels
+                  worldHeader.style.transform = '';
+                  worldHeader.classList.remove('swiping');
+                }
+              } else {
+                // Reset position if not dragged far enough
+                worldHeader.style.transform = '';
+                worldHeader.classList.remove('swiping');
+                
+                // If it was a small drag, treat it as a click
+                if (Math.abs(diff) < 5) {
+                  toggleWorldGroup(world.name);
+                }
+              }
+            };
 
             worldGroup.appendChild(worldHeader);
 
